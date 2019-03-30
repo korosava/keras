@@ -31,7 +31,7 @@ model.fit(
 	f1,
 	l1,
 	batch_size=100,
-	epochs=10,
+	epochs=1,
 	validation_data=test,
 	verbose=2,
 	callbacks=callbacks,
@@ -39,8 +39,8 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
-model.save('full_model/model1_10ep.h5')
-model.save_weights('weight/model1_10ep')
+model.save('full_model/model1_1ep.h5')
+model.save_weights('weight/model1_1ep')
 
 
 
