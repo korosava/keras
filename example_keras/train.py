@@ -32,7 +32,7 @@ model.fit(
 	f1,
 	l1,
 	batch_size=100,
-	epoch=1,
+	epoch=10,
 	validation_data=test,
 	verbose=2,
 	callbacks=callbacks,
@@ -41,7 +41,7 @@ model.fit(
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
 model.save('full_model/model1.h5')
-
+model.save_weights('./weight/model2')
 
 
 

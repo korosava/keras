@@ -12,6 +12,7 @@ f2, l2 = test
 
 #<======================_LOAD_FULL_MODEL_======================>
 model = tf.keras.models.load_model('./full_model/model1.h5')
+#model.load_weights('./weight/model1')
 
 
 #<======================_EVALUATE_MODEL_======================>

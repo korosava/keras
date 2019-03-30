@@ -3,6 +3,7 @@ from input_data import load_data, transform_to_dense
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 #<======================_INPUT_DATA_======================>
 data = load_data()
 data = transform_to_dense(data)
@@ -10,8 +11,11 @@ train, test = data
 f1, l1 = train
 f2, l2 = test
 first,last = 0,5
+
+
 #<======================_LOAD_FULL_MODEL_======================>
 model = tf.keras.models.load_model('./full_model/model1.h5')
+#model.load_weights('./weight/model1')
 
 
 #<======================_MODEL_PREDICT_======================>
