@@ -18,7 +18,7 @@ callbacks = [tbCallBack, stopCallBack]
 
 
 #<======================_LOAD_CLEAR_MODEL_======================>
-with open('./model/model1.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/model1.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
@@ -26,13 +26,12 @@ model.compile(
 	loss='categorical_crossentropy', 			#tf.keras.losses
 	metrics=['accuracy'])			 			#tf.keras.metrics
 
-
 #<======================_TRAIN_MODEL_======================>
 model.fit(
 	f1,
 	l1,
 	batch_size=100,
-	epoch=10,
+	epochs=10,
 	validation_data=test,
 	verbose=2,
 	callbacks=callbacks,
@@ -40,8 +39,8 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
-model.save('full_model/model1.h5')
-model.save_weights('./weight/model2')
+model.save('full_model/model1_10ep.h5')
+model.save_weights('weight/model1_10ep')
 
 
 

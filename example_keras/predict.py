@@ -14,7 +14,7 @@ first,last = 0,5
 
 
 #<======================_LOAD_FULL_MODEL_======================>
-model = tf.keras.models.load_model('./full_model/model1.h5')
+model = tf.keras.models.load_model('./full_model/model1_10ep.h5')
 #model.load_weights('./weight/model1')
 
 
