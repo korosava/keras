@@ -12,22 +12,22 @@ f2, l2 = test
 
 #<======================_SET_CALLBACKS_======================>
 # tensorboard --logdir ./log_dir
-tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/model2', write_graph=True)
+tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/model2_1', write_graph=True)
 callbacks = [tbCallBack]
 
-'''
+
 #<======================_LOAD_CLEAR_MODEL_======================>
 with open('./saved_model/model2.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
-	optimizer='adadelta',							#tf.train -> optimizers
-	loss='mse', 			#tf.keras.losses
+	optimizer='adam',							#tf.train -> optimizers
+	loss=tf.keras.losses.categorical_crossentropy, 			#tf.keras.losses
 	metrics=['accuracy'])			 			#tf.keras.metrics
-'''
+
 
 #<======================_LOAD_FULL_MODEL_======================>
-model = tf.keras.models.load_model('./full_model/model2_10ep.h5')
+#model = tf.keras.models.load_model('./full_model/model2_1_10ep.h5')
 
 
 #<======================_TRAIN_MODEL_======================>
@@ -35,7 +35,7 @@ model.fit(
 	f1,
 	l1,
 	batch_size=100,
-	epochs=1,
+	epochs=10,
 	validation_data=test,
 	verbose=1,
 	callbacks=callbacks,
@@ -43,8 +43,8 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
-model.save('full_model/model2_10ep.h5')
-model.save_weights('weight/model2_10ep')
+model.save('full_model/model2_1_10ep.h5')
+model.save_weights('weight/model2_1_10ep')
 
 
 

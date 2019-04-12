@@ -14,14 +14,14 @@ model.add(ks.layers.MaxPool2D(pool_size=(2,2), strides=(2,2)))
 
 model.add(ks.layers.Flatten())
 
-model.add(ks.layers.Dense(100, activation='relu'))
+model.add(ks.layers.Dense(1096, activation='relu'))
 model.add(ks.layers.Dropout(rate=0.2))
 model.add(ks.layers.Dense(10))
 
 
 #<======================_SAVE_CLEAR_MODEL_======================>
 json_model = model.to_json()
-with open('../saved_model/model2.json', 'wt', encoding='utf-8') as fileobj:
+with open('../saved_model/model2_1.json', 'wt', encoding='utf-8') as fileobj:
 	fileobj.write(json_model)
 
 
