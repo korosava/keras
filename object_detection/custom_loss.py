@@ -64,7 +64,7 @@ if __name__ == '__main__':
 	a[:,:,0]=1; a[:,:,1]=2; a[:,:,2]=3; a[:,:,3]=4
 	b[:,:,0]=1; b[:,:,1]=2; b[:,:,2]=3; b[:,:,3]=4
 	res = iouFinder(a, b)
-
+	
 	print(K.eval(res), res.shape, sep='\n')
 
 
