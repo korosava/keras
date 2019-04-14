@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import bbox as bx
 
 def load_data():
 	data = tf.keras.datasets.mnist.load_data()
@@ -39,6 +40,10 @@ def transform_to_dense(data):
 	test = f2, l2
 	data = train,test
 	return data
+
+
+def bbox_conv():
+	pass
 
 
 if __name__ == '__main__':
