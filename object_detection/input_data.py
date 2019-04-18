@@ -42,7 +42,8 @@ def transform_to_dense(data):
 	return data
 
 
-def bbox_conv():
+def bbox_conv(bbox_data):
+	f1, l1 = bbox_data
 	pass
 
 

@@ -72,12 +72,23 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 # features: imgs
 # labels: (bboxes, offsets)
 # bboxes: (x,y,w,h)
-# offsets: offsets of (x,y)
+# offsets: offsets of (x,y) to restore normalized bbox
 def bbox_data(num_imgs=50000, img_size=8, cell_size=4, min_object_size=1, max_object_size=4, num_objects=1):
 	imgs,bboxes = create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects)
 	imgs = normalize_img(imgs)
 	packed_bboxes = normalize_bbox(bboxes,img_size,cell_size)
-	return(imgs, (packed_bboxes))
+	return(imgs, packed_bboxes)
+
+
+# train data_set (without offsets)
+def train_bbox_data(num_imgs=500, img_size=24, cell_size=4, min_object_size=6, max_object_size=12, num_objects=1):
+	f1, lo1 = bbox_data(num_imgs, img_size, cell_size, min_object_size, max_object_size, num_objects)
+	f2, lo2 = bbox_data(num_imgs/10, img_size, cell_size, min_object_size, max_object_size, num_objects)
+	l1 = lo1[0]
+	l2 = lo2[0]
+	return (f1,l1), (f2,l2)
+
+
 
 
 if __name__ == '__main__':

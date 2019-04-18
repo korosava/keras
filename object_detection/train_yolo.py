@@ -3,6 +3,11 @@ from custom_loss import yolo_loss
 import bbox
 
 #<======================_LOAD_INPUT_DATA_======================>
+data = bbox.train_bbox_data()
+data = transform_to_conv(data)
+train, test = data
+f1, l1 = train
+f2, l2 = test
 
 
 #<======================_SET_CALLBACKS_======================>
