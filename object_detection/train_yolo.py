@@ -1,6 +1,7 @@
 import tensorflow as tf
 from custom_loss import yolo_loss
 import bbox
+from input_data import transform_to_conv
 
 #<======================_LOAD_INPUT_DATA_======================>
 data = bbox.train_bbox_data()
@@ -12,17 +13,17 @@ f2, l2 = test
 
 #<======================_SET_CALLBACKS_======================>
 # tensorboard --logdir ./log_dir
-#tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/model2_1', write_graph=True)
-#callbacks = [tbCallBack]
+tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1', write_graph=True)
+callbacks = [tbCallBack]
 
 
 #<======================_LOAD_CLEAR_MODEL_======================>
-with open('./saved_model/model1.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
 	optimizer='adam',							#tf.train -> optimizers
-	loss=yolo_loss,			#tf.keras.losses
+	loss='mse',			#tf.keras.losses
 	metrics=['accuracy'])			 			#tf.keras.metrics
 
 
@@ -35,14 +36,15 @@ model.fit(
 	f1,
 	l1,
 	batch_size=100,
-	epochs=10,
+	epochs=50,
 	validation_data=test,
 	verbose=2,
+	callbacks = callbacks
 	)
 
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
-model.save('full_model/model1_custom_error_10ep.h5')
-model.save_weights('weight/model1_custom_error_10ep')
+model.save('full_model/model_yolo_10ep.h5')
+model.save_weights('weight/model_yolo_10ep')
 
 

@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 # Create images with random rectangles and bounding boxes. 
-def create_rect(num_imgs=500, img_size=8, min_object_size=1, max_object_size=4, num_objects=1):
+def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects):
 
 	bboxes = np.zeros((num_imgs, num_objects, 4))
 	imgs = np.zeros((num_imgs, img_size, img_size))  # set background to 0
@@ -20,14 +20,14 @@ def create_rect(num_imgs=500, img_size=8, min_object_size=1, max_object_size=4, 
 	return (imgs, bboxes)
 
 
-def build_bbox(imgs, bboxes, img_size=8):
-	for i in range(1):
+def build_bbox(imgs, bboxes, img_size):
+	for i in range(len(imgs)):
 		matplotlib.pyplot.figure()
 		plt.imshow(imgs[i].T, cmap='Greys', interpolation='none', origin='lower', extent=[0, img_size, 0, img_size], vmin=0, vmax=255)
 		for bbox in bboxes[i]:
 			plt.gca().add_patch(matplotlib.patches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3], ec='r', fc='none'))
 		
-	plt.show()
+		plt.show()
 
 
 def normalize_img(imgs):
@@ -38,6 +38,7 @@ def restore_imgs(imgs):
 	return (imgs-0.001)*256
 
 
+#[img_i,bbox_i,coords]
 # нормалізація bbox:
 # (x,y) -> центр, відносно розмірів клітини
 # (w,h) -> ширина, висота, відностно розмірів зображення
@@ -73,7 +74,7 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 # labels: (bboxes, offsets)
 # bboxes: (x,y,w,h)
 # offsets: offsets of (x,y) to restore normalized bbox
-def bbox_data(num_imgs=50000, img_size=8, cell_size=4, min_object_size=1, max_object_size=4, num_objects=1):
+def create_bbox_data(num_imgs, img_size, cell_size, min_object_size, max_object_size, num_objects):
 	imgs,bboxes = create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects)
 	imgs = normalize_img(imgs)
 	packed_bboxes = normalize_bbox(bboxes,img_size,cell_size)
@@ -81,27 +82,29 @@ def bbox_data(num_imgs=50000, img_size=8, cell_size=4, min_object_size=1, max_ob
 
 
 # train data_set (without offsets)
-def train_bbox_data(num_imgs=500, img_size=24, cell_size=4, min_object_size=6, max_object_size=12, num_objects=1):
-	f1, lo1 = bbox_data(num_imgs, img_size, cell_size, min_object_size, max_object_size, num_objects)
-	f2, lo2 = bbox_data(num_imgs/10, img_size, cell_size, min_object_size, max_object_size, num_objects)
-	l1 = lo1[0]
-	l2 = lo2[0]
-	return (f1,l1), (f2,l2)
+def use_bbox_data(num_imgs_train, num_imgs_test, img_size, cell_size, min_object_size, max_object_size, num_objects, train=True):
+	f1, lo1 = create_bbox_data(num_imgs_train, img_size, cell_size, min_object_size, max_object_size, num_objects)
+	f2, lo2 = create_bbox_data(num_imgs_test, img_size, cell_size, min_object_size, max_object_size, num_objects)
+	l1, offset1 = lo1
+	l2, offset2 = lo2
+	l1 = np.reshape(l1, [num_imgs_train,4])
+	l2 = np.reshape(l2, [num_imgs_test,4])
+	if train:
+		res = (f1,l1), (f2,l2)
+	else:
+		res = (f1,l1), (f2,l2), (offset1,offset2)
+	return res
 
 
+#[img_i, bbox_i, coords]
+def transform_from_conv(imgs, bboxes):
+	imgs = imgs.reshape(-1,28,28)
+	bboxes = bboxes.reshape(-1,1,4)
+	return imgs,bboxes
 
 
 if __name__ == '__main__':
-	'''
-	imgs, bboxes = create_rect()
-	print(imgs.shape, bboxes.shape, sep='\n')
-	print(bboxes[0:3],'\n\n')
-	norm_boxes,offsets = normalize_bbox(deepcopy(bboxes), 8, 4)
-	print(norm_boxes[0:3], '\n\n')
-	print(restore_bbox(norm_boxes,8,4,offsets)[0:3])
-	build_bbox(imgs, bboxes)
-	'''
-	imgs, packed_bboxes = bbox_data(num_imgs=500, img_size=24, cell_size=4, min_object_size=6, max_object_size=12, num_objects=1)
-	bboxes = restore_bbox(*packed_bboxes,img_size=24,cell_size=4)
+	imgs, packed_bboxes = create_bbox_data(num_imgs=5, img_size=28, cell_size=4, min_object_size=3, max_object_size=8, num_objects=2)
+	bboxes = restore_bbox(*packed_bboxes,img_size=28,cell_size=4)
 	imgs = restore_imgs(imgs)
-	build_bbox(imgs, bboxes, img_size=24)
+	build_bbox(imgs, bboxes, img_size=28)

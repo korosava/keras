@@ -2,6 +2,15 @@ import tensorflow as tf
 import numpy as np
 import bbox as bx
 
+
+'''
+data inputs format:
+data = train, test
+features_1, labels_1 = train
+features_2, labels_2 = test
+'''
+
+
 def load_data():
 	data = tf.keras.datasets.mnist.load_data()
 	train,test = data
@@ -40,12 +49,7 @@ def transform_to_dense(data):
 	test = f2, l2
 	data = train,test
 	return data
-
-
-def bbox_conv(bbox_data):
-	f1, l1 = bbox_data
-	pass
-
+	
 
 if __name__ == '__main__':
 	print('\ninput_data:')
