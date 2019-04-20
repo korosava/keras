@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-
-
 #<======================_INPUT_DATA_======================>
 train, test, offsets = bbox.use_bbox_data(
 	num_imgs_train=500,
@@ -25,7 +23,7 @@ offsets = offsets[1]	# test offsets
 first, last = 0, 5	# imgs to show
 
 #<======================_LOAD_FULL_MODEL_======================>
-model = tf.keras.models.load_model('./full_model/model_yolo_10ep.h5')
+model = tf.keras.models.load_model('./full_model/model_coords_10ep.h5')
 
 
 #<======================_MODEL_PREDICT_======================>

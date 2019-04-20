@@ -13,12 +13,12 @@ f2, l2 = test
 
 #<======================_SET_CALLBACKS_======================>
 # tensorboard --logdir ./log_dir
-tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1', write_graph=True)
+tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/model_coords', write_graph=True)
 callbacks = [tbCallBack]
 
 
 #<======================_LOAD_CLEAR_MODEL_======================>
-with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/model_coords.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
@@ -44,6 +44,7 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_MODEL_======================>
-model.save('full_model/model_yolo_10ep.h5')
-model.save_weights('weight/model_yolo_10ep')
+model.save('full_model/model_coords_10ep.h5')
+model.save_weights('weight/model_coords_10ep')
+
 

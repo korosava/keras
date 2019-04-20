@@ -16,8 +16,18 @@ def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_object
 	    	x = np.random.randint(0, img_size - w) # лівий нижній край (x,y)
 	    	y = np.random.randint(0, img_size - h)
 	    	imgs[i_img, x:x+w, y:y+h] = 200  # set rectangle to 1
-	    	bboxes[i_img, i_object] = [x, y, w, h]
+	    	bboxes[i_img, i_object] = [x, y, w, h, 1]
 	return (imgs, bboxes)
+
+
+def create_grid_predicts(
+	bboxes,
+	num_imgs,
+	num_cells,
+	num_bboxes):
+
+	bboxes = np.reshape(bboxes,[num_imgs,num_cells,num_cells,num_bboxes*5])
+	return bboxes
 
 
 def build_bbox(imgs, bboxes, img_size):

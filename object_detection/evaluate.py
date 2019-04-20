@@ -12,7 +12,7 @@ f2, l2 = test
 
 
 #<======================_LOAD_FULL_MODEL_======================>
-model = tf.keras.models.load_model('./full_model/model_yolo_10ep.h5')
+model = tf.keras.models.load_model('./full_model/model_coords_10ep.h5')
 
 '''
 #<======================_LOAD_CLEAR_MODEL_======================>
