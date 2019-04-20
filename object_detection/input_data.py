@@ -49,7 +49,32 @@ def transform_to_dense(data):
 	test = f2, l2
 	data = train,test
 	return data
-	
+
+
+def yolo_input_pippeline(
+	num_imgs,  
+	img_size, 
+	cell_size, 
+	min_object_size, 
+	max_object_size, 
+	num_objects,
+	num_bboxes,
+	channels,
+	train=True):
+	# CREATE
+	imgs, bboxes = bx.create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects, channels)
+	# NORMALIZE
+	imgs = bx.normalize_img(imgs)
+	bboxes, offsets = bx.normalize_bbox(bboxes, img_size, cell_size)
+	# TRANSFORM TO YOLO SHAPE
+	num_cells = int(img_size/cell_size)
+	bboxes = bx.labels_to_loss(bboxes,offsets,num_cells,num_bboxes,img_size)
+
+	if train:
+		return (imgs, bboxes)
+	else:
+		return (imgs, bboxes, offsets)
+
 
 if __name__ == '__main__':
 	print('\ninput_data:')

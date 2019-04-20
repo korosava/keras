@@ -1,49 +1,53 @@
 import tensorflow as tf
 from custom_loss import yolo_loss
-import bbox
-from input_data import transform_to_conv
+from input_data import yolo_input_pippeline
 
-#<======================_LOAD_INPUT_DATA_======================>
-data = bbox.train_bbox_data()
-data = transform_to_conv(data)
-train, test = data
-f1, l1 = train
-f2, l2 = test
+#<==============================_LOAD_INPUT_DATA_==============================>
+train = yolo_input_pippeline(
+	num_imgs=50000,  
+	img_size=28, 
+	cell_size=7, 
+	min_object_size=3, 
+	max_object_size=7, 
+	num_objects=1,
+	num_bboxes=1,
+	channels=1,
+	train=True)
+imgs, bboxes = train
+print('\n\n',imgs.shape,bboxes.shape,'\n\n')
 
-
-#<======================_SET_CALLBACKS_======================>
+#<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
 tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1', write_graph=True)
 callbacks = [tbCallBack]
 
 
-#<======================_LOAD_CLEAR_MODEL_======================>
+#<==============================_LOAD_CLEAR_MODEL_==============================>
 with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
 	optimizer='adam',							#tf.train -> optimizers
-	loss='mse',			#tf.keras.losses
+	loss=yolo_loss,			#tf.keras.losses
 	metrics=['accuracy'])			 			#tf.keras.metrics
 
 
-#<======================_LOAD_FULL_MODEL_======================>
-#model = tf.keras.models.load_model('./full_model/model1_10ep.h5')
+#<==============================_LOAD_FULL_MODEL_==============================>
+#model = tf.keras.models.load_model('./full_model/model_yolo_10ep.h5')
 
 
-#<======================_TRAIN_MODEL_======================>
+#<==============================_TRAIN_MODEL_==============================>
 model.fit(
-	f1,
-	l1,
+	imgs,
+	bboxes,
 	batch_size=100,
 	epochs=50,
-	validation_data=test,
-	verbose=2,
+	verbose=1,
 	callbacks = callbacks
 	)
 
 
-#<======================_SAVE_WEIGHTS_MODEL_======================>
+#<======================_SAVE_WEIGHTS_&_MODEL_======================>
 model.save('full_model/model_yolo_10ep.h5')
 model.save_weights('weight/model_yolo_10ep')
 

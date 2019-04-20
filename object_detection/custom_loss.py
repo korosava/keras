@@ -1,17 +1,19 @@
 import tensorflow as tf
 from tensorflow.python.keras._impl.keras import backend as K
 import numpy as np
+from bbox import predict_to_loss
+
 #shape: S*S*B*5+3
 #B: (x, y, w, h, confidence)
 # бере 1 елемент pred, true з їх масивів у fit, застосовує помилку
 
 
-def yolo_loss(y_true, y_pred):	
+def yolo_loss(y_true, y_pred):
 	print('SHAPE: ', y_true.shape, y_pred.shape)
-	kij = kijFinder(y_pred)
-	ki = kiFinder(y_true)
-	iou = iouFinder(y_true, y_pred)
-	return K.mean(K.square(y_pred - y_true), axis=-1);
+	#y_pred = predict_to_loss(y_pred, num_cells=4, num_bboxes=1)
+	print('SHAPE: ', y_true, y_pred, sep='\n')
+	print('\n\n\n\n')
+	return K.mean(K.square(y_pred - y_true), axis=1);
 
 
 #S,S,B[conf_max]

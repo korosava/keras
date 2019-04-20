@@ -1,10 +1,10 @@
 from tensorflow import keras as ks
 
 #<======================_STATIC_DATA_======================>
-cell_num = 16
-bbox_num = 1
-coords_num = 5
-class_num = 0
+cell = 4
+bbox = 1
+coords = 4
+classes = 0
 
 #<======================_CREATE_MODEL_======================>
 # послідовна модель, шар за шаром
@@ -21,7 +21,7 @@ model.add(ks.layers.Flatten())
 
 model.add(ks.layers.Dense(1096, activation='relu'))
 model.add(ks.layers.Dropout(rate=0.5))
-model.add(ks.layers.Dense(cell_num*bbox_num*(coords_num+class_num)))
+model.add(ks.layers.Dense(cell*cell*bbox*(coords+classes)))
 
 
 #<======================_SAVE_CLEAR_MODEL_======================>

@@ -2,22 +2,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from copy import deepcopy
+from tensorflow.python.keras._impl.keras import backend as K
 
 
 #<==================================_BBOX_&_IMAGE_CREATING_==================================>
 # Create images with random rectangles and bounding boxes. 
-def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects):
+def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects, channels):
 
 	bboxes = np.zeros((num_imgs, num_objects, 4))
-	imgs = np.zeros((num_imgs, img_size, img_size))  # set background to 0
+	imgs = np.zeros((num_imgs, img_size, img_size,channels))  # set background to 0
 
 	for i_img in range(num_imgs):
-	    for i_object in range(num_objects):
-	    	w, h = np.random.randint(min_object_size, max_object_size, size=2)
-	    	x = np.random.randint(0, img_size - w) # лівий нижній край (x,y)
-	    	y = np.random.randint(0, img_size - h)
-	    	imgs[i_img, x:x+w, y:y+h] = 200  # set rectangle to 1
-	    	bboxes[i_img, i_object] = [x, y, w, h]
+		for i_object in range(num_objects):
+			for i_ch in range(channels):
+				w, h = np.random.randint(min_object_size, max_object_size, size=2)
+				x = np.random.randint(0, img_size - w) # лівий нижній край (x,y)
+				y = np.random.randint(0, img_size - h)
+				imgs[i_img, x:x+w, y:y+h, i_ch] = 200  # set rectangle to 1
+		bboxes[i_img, i_object] = [x, y, w, h]
 	return (imgs, bboxes)
 
 
@@ -73,6 +75,7 @@ def create_bbox_data(num_imgs, img_size, cell_size, min_object_size, max_object_
 	return(imgs, packed_bboxes)
 
 # train data_set (without offsets)
+# COORDS, NOT YOLO
 def use_bbox_data(num_imgs_train, num_imgs_test, img_size, cell_size, min_object_size, max_object_size, num_objects, train=True):
 	f1, lo1 = create_bbox_data(num_imgs_train, img_size, cell_size, min_object_size, max_object_size, num_objects)
 	f2, lo2 = create_bbox_data(num_imgs_test, img_size, cell_size, min_object_size, max_object_size, num_objects)
@@ -97,11 +100,10 @@ def transform_from_conv(imgs, bboxes):
 # predictions vector -> loss input shape
 def predict_to_loss(
 	bboxes,
-	num_imgs,
 	num_cells,
 	num_bboxes):
-	
-	bboxes = np.reshape(bboxes,[num_imgs,num_cells,num_cells,num_bboxes*5])
+
+	bboxes = K.reshape(bboxes,[-1,num_cells,num_cells,num_bboxes*4])
 	return bboxes
 
 # generated bboxes -> loss input shape
@@ -109,19 +111,20 @@ def labels_to_loss(
 	bboxes,
 	offsets,
 	num_cells,
+	num_bboxes,
 	img_size):
 
 	num_imgs = len(offsets)
-	num_bboxes = len(offsets[0])
 	cell_size = int(img_size/num_cells)
 	norm_bboxes,offsets = normalize_bbox(bboxes, img_size, cell_size)
-	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes*5])
+	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes*4])
 
 	for img in range(num_imgs):
 		for obj in range(len(offsets[0])):
 			x_offset,y_offset = offsets[img,obj]
 			labels[img,x_offset,y_offset] = bboxes[img,obj]
 
+	labels = np.reshape(labels,[-1,num_cells*num_cells*num_bboxes*4])
 	return labels
 
 
@@ -143,3 +146,4 @@ if __name__ == '__main__':
 	bboxes = restore_bbox(*packed_bboxes,img_size=28,cell_size=4)
 	imgs = restore_imgs(imgs)
 	build_bbox(imgs, bboxes, img_size=28)
+
