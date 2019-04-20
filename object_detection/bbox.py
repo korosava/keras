@@ -4,6 +4,7 @@ import matplotlib
 from copy import deepcopy
 
 
+#<==================================_BBOX_&_IMAGE_CREATING_==================================>
 # Create images with random rectangles and bounding boxes. 
 def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects):
 
@@ -16,43 +17,24 @@ def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_object
 	    	x = np.random.randint(0, img_size - w) # лівий нижній край (x,y)
 	    	y = np.random.randint(0, img_size - h)
 	    	imgs[i_img, x:x+w, y:y+h] = 200  # set rectangle to 1
-	    	bboxes[i_img, i_object] = [x, y, w, h, 1]
+	    	bboxes[i_img, i_object] = [x, y, w, h]
 	return (imgs, bboxes)
 
 
-def create_grid_predicts(
-	bboxes,
-	num_imgs,
-	num_cells,
-	num_bboxes):
-
-	bboxes = np.reshape(bboxes,[num_imgs,num_cells,num_cells,num_bboxes*5])
-	return bboxes
-
-
-def build_bbox(imgs, bboxes, img_size):
-	for i in range(len(imgs)):
-		matplotlib.pyplot.figure()
-		plt.imshow(imgs[i].T, cmap='Greys', interpolation='none', origin='lower', extent=[0, img_size, 0, img_size], vmin=0, vmax=255)
-		for bbox in bboxes[i]:
-			plt.gca().add_patch(matplotlib.patches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3], ec='r', fc='none'))
-		
-		plt.show()
-
-
+#<==================================_NORMALIZING_==================================>
 def normalize_img(imgs):
 	return imgs/256+0.001
 
-
 def restore_imgs(imgs):
 	return (imgs-0.001)*256
-
 
 #[img_i,bbox_i,coords]
 # нормалізація bbox:
 # (x,y) -> центр, відносно розмірів клітини
 # (w,h) -> ширина, висота, відностно розмірів зображення
-# imgs має націло ділитись на cell size 
+# imgs має націло ділитись на cell size
+# offsets - [img_num,obj_num,2]
+# 2: x_offset, y_offset
 def normalize_bbox(bboxes, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
 	# лівий нижній край -> центр
@@ -64,7 +46,6 @@ def normalize_bbox(bboxes, img_size, cell_size):
 	bboxes[:,:,0:2] -= cell_size*offsets
 	bboxes[:,:,0:2] /= cell_size
 	return (bboxes, offsets)
-
 
 # денормалізація bbox
 def restore_bbox(bboxes, offsets, img_size, cell_size):
@@ -79,6 +60,7 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 	return bboxes
 
 
+#<==================================_DATASET_CREATING_==================================>
 # returns (features, labels)
 # features: imgs
 # labels: (bboxes, offsets)
@@ -89,7 +71,6 @@ def create_bbox_data(num_imgs, img_size, cell_size, min_object_size, max_object_
 	imgs = normalize_img(imgs)
 	packed_bboxes = normalize_bbox(bboxes,img_size,cell_size)
 	return(imgs, packed_bboxes)
-
 
 # train data_set (without offsets)
 def use_bbox_data(num_imgs_train, num_imgs_test, img_size, cell_size, min_object_size, max_object_size, num_objects, train=True):
@@ -105,7 +86,6 @@ def use_bbox_data(num_imgs_train, num_imgs_test, img_size, cell_size, min_object
 		res = (f1,l1), (f2,l2), (offset1,offset2)
 	return res
 
-
 #[img_i, bbox_i, coords]
 def transform_from_conv(imgs, bboxes):
 	imgs = imgs.reshape(-1,28,28)
@@ -113,8 +93,53 @@ def transform_from_conv(imgs, bboxes):
 	return imgs,bboxes
 
 
+#<==================================_BBOXES_TO_LOSS_==================================>
+# predictions vector -> loss input shape
+def predict_to_loss(
+	bboxes,
+	num_imgs,
+	num_cells,
+	num_bboxes):
+	
+	bboxes = np.reshape(bboxes,[num_imgs,num_cells,num_cells,num_bboxes*5])
+	return bboxes
+
+# generated bboxes -> loss input shape
+def labels_to_loss(
+	bboxes,
+	offsets,
+	num_cells,
+	img_size):
+
+	num_imgs = len(offsets)
+	num_bboxes = len(offsets[0])
+	cell_size = int(img_size/num_cells)
+	norm_bboxes,offsets = normalize_bbox(bboxes, img_size, cell_size)
+	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes*5])
+
+	for img in range(num_imgs):
+		for obj in range(len(offsets[0])):
+			x_offset,y_offset = offsets[img,obj]
+			labels[img,x_offset,y_offset] = bboxes[img,obj]
+
+	return labels
+
+
+#<==================================_BBOXES_&_IMAGE_PLOTTING_==================================>
+def build_bbox(imgs, bboxes, img_size):
+	for i in range(len(imgs)):
+		matplotlib.pyplot.figure()
+		plt.imshow(imgs[i].T, cmap='Greys', interpolation='none', origin='lower', extent=[0, img_size, 0, img_size], vmin=0, vmax=255)
+		for bbox in bboxes[i]:
+			plt.gca().add_patch(matplotlib.patches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3], ec='r', fc='none'))
+		
+		plt.show()
+
+
+#<==================================_TESTING_==================================>
 if __name__ == '__main__':
 	imgs, packed_bboxes = create_bbox_data(num_imgs=5, img_size=28, cell_size=4, min_object_size=3, max_object_size=8, num_objects=2)
+	print('\n\n',packed_bboxes[1].shape,'\n\n')
 	bboxes = restore_bbox(*packed_bboxes,img_size=28,cell_size=4)
 	imgs = restore_imgs(imgs)
 	build_bbox(imgs, bboxes, img_size=28)
