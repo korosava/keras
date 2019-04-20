@@ -124,7 +124,9 @@ def labels_to_loss(
 			x_offset,y_offset = offsets[img,obj]
 			labels[img,x_offset,y_offset] = bboxes[img,obj]
 
-	labels = np.reshape(labels,[-1,num_cells*num_cells*num_bboxes*4])
+	confidences = np.ones([num_imgs,num_cells,num_cells,1])
+	labels = np.concatenate((labels, confidences), axis=3)
+	labels = np.reshape(labels,[-1,num_cells*num_cells*num_bboxes*5])
 	return labels
 
 

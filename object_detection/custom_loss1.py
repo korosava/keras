@@ -3,6 +3,8 @@ from tensorflow.python.keras._impl.keras import backend as K
 import numpy as np
 import bbox
 
+# ПЕРЕВІРИТИ IOU ЧЕРЕЗ EVAL (ПРАВИЛЬНІСТЬ ПІСЛЯ RESHAPE)
+# ДОДАТИ ACCURACCY, дефолтна не підходить
 #shape: S*S*B*5+3
 #B: (x, y, w, h, confidence)
 # бере batch елементів pred, true з їх масивів у fit, застосовує помилку
@@ -12,17 +14,17 @@ def yolo_loss(y_true, y_pred):
 	print('SHAPE: ', y_true.shape, y_pred.shape)
 	
 	print('\n\n\n\n')
-	y_true1 = K.reshape(y_true, [4,4,5])
-	y_pred1 = K.reshape(y_pred, [4,4,5])
+	y_true1 = K.reshape(y_true, [-1,4,4,5])
+	y_pred1 = K.reshape(y_pred, [-1,4,4,5])
 
 	iou = iouFinder(y_true1, y_pred1)
-	iou = K.reshape(iou, [4,4,1])
-
-	y_true = K.concatenate((y_true1[:,:,0:4], iou), axis = 2)
-	y_true = K.reshape(y_true, [-1, 80])
+	iou = K.reshape(iou, [-1,4,4,1])
 	
-	#print('\ny_true Shape:\n{}\n\n'.format(y_true1.shape))
-	return K.mean(K.square(y_pred - y_true), axis=1)
+	y_true = K.concatenate((y_true1[:,:,:,0:4], iou), axis = 3)
+	y_true = K.reshape(y_true, [-1, 80])
+	#print('\niou Shape:\n{}\n\n'.format(iou.shape))
+	#assert False
+	return K.mean(K.square((y_pred - y_true)), axis=1)
 
 
 #S,S,B[conf_max]
@@ -44,11 +46,11 @@ def kiFinder(y_true):
 
 
 def iouFinder(y_true, y_pred):
-	coord1 = y_true[:,:,0:4]
-	coord2 = y_pred[:,:,0:4]
-	coords = K.concatenate((coord1,coord2), axis=2)
-	coords = K.reshape(coords, [-1,8])
-	res = K.map_fn(iou, coords)
+	coord1 = y_true[:,:,:,0:4]
+	coord2 = y_pred[:,:,:,0:4]
+	coords = K.concatenate((coord1,coord2), axis=3)
+	coords = K.reshape(coords, [-1,8])####
+	res = K.map_fn(iou, coords,dtype='float32')
 	return res
 
 
@@ -59,8 +61,8 @@ def iou(coords):
 	w_I = K.minimum(x1 + w1, x2 + w2) - K.maximum(x1, x2)
 	h_I = K.minimum(y1 + h1, y2 + h2) - K.maximum(y1, y2)
 	
-	def i_dev_u(): return K.cast((w_I*h_I) / (w1*h1+w2*h2 - w_I*h_I),'float64')
-	def zero1(): return K.cast(0.0,'float64')
+	def i_dev_u(): return K.cast((w_I*h_I) / (w1*h1+w2*h2 - w_I*h_I),'float32')
+	def zero1(): return K.cast(0.0,'float32')
 	# нема перетину -> res=0
 	# є перетин -> res = I/U
 	res = tf.cond(w_I<=0, zero1, i_dev_u)

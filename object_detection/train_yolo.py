@@ -1,5 +1,5 @@
 import tensorflow as tf
-from custom_loss import yolo_loss
+from custom_loss1 import yolo_loss
 from input_data import yolo_input_pippeline
 
 #<==============================_LOAD_INPUT_DATA_==============================>
@@ -14,7 +14,7 @@ train = yolo_input_pippeline(
 	channels=1,
 	train=True)
 imgs, bboxes = train
-print('\n\n',imgs.shape,bboxes.shape,'\n\n')
+#print('\n\n',imgs.shape,bboxes.shape,'\n\n')
 
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
@@ -28,8 +28,9 @@ with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
 	optimizer='adam',							#tf.train -> optimizers
-	loss=yolo_loss,			#tf.keras.losses
-	metrics=['accuracy'])			 			#tf.keras.metrics
+	loss=yolo_loss	#tf.keras.losses
+	#metrics=['accuracy']
+	)			 			#tf.keras.metrics
 
 
 #<==============================_LOAD_FULL_MODEL_==============================>
@@ -41,7 +42,7 @@ model.fit(
 	imgs,
 	bboxes,
 	batch_size=100,
-	epochs=50,
+	epochs=1,
 	verbose=1,
 	callbacks = callbacks
 	)

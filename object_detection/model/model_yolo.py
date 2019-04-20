@@ -3,7 +3,7 @@ from tensorflow import keras as ks
 #<======================_STATIC_DATA_======================>
 cell = 4
 bbox = 1
-coords = 4
+coords = 5
 classes = 0
 
 #<======================_CREATE_MODEL_======================>
