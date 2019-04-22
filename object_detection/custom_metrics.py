@@ -3,7 +3,7 @@ import custom_loss1
 from tensorflow.python.keras._impl.keras import backend as K
 
 
-def my_accuracy(y_true, y_pred):
+def metric_iou(y_true, y_pred):
 	#print('SHAPE: ', y_true.shape, y_pred.shape)
 	#print('\n\n\n\n')
 	y_true1 = K.reshape(y_true, [-1,4,4,5])

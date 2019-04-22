@@ -9,7 +9,7 @@ import bbox
 
 #<======================_INPUT_DATA_======================>
 test = yolo_input_pippeline(
-	num_imgs=2,  
+	num_imgs=5,  
 	img_size=28, 
 	cell_size=7, 
 	min_object_size=3, 
@@ -30,7 +30,7 @@ model.compile(
 	metrics=[my_accuracy])		
 
 #<======================_WEIGHTS_LOAD_======================>
-model.load_weights('./weight/model_yolo_10ep')
+model.load_weights('./weight/model_yolo_5ep')
 
 
 #<======================_MODEL_PREDICT_======================>

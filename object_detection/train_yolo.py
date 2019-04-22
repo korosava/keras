@@ -6,7 +6,7 @@ from custom_metrics import my_accuracy
 
 #<==============================_LOAD_INPUT_DATA_==============================>
 train = yolo_input_pippeline(
-	num_imgs=50000,  
+	num_imgs=5000,  
 	img_size=28, 
 	cell_size=7, 
 	min_object_size=3, 
@@ -19,7 +19,7 @@ imgs, bboxes = train
 
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
-tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1', write_graph=True)
+tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_2_50ep', write_graph=True)
 callbacks = [tbCallBack]
 
 
@@ -30,7 +30,7 @@ model = tf.keras.models.model_from_json(json_model)
 model.compile(
 	optimizer='adam',							#tf.train -> optimizers
 	loss=yolo_loss,		#tf.keras.losses
-	metrics=[my_accuracy]
+	metrics=[metric_iou]
 	)			 			#tf.keras.metrics
 
 
@@ -43,13 +43,13 @@ model.fit(
 	imgs,
 	bboxes,
 	batch_size=100,
-	epochs=1,
+	epochs=50,
 	verbose=1,
 	callbacks = callbacks
 	)
 
 
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_1ep.h5')
-model.save_weights('weight/model_yolo_1ep')
+model.save('full_model/model_yolo_50ep.h5')
+model.save_weights('weight/model_yolo_50ep')
 
