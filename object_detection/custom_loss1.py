@@ -11,20 +11,32 @@ import bbox
 
 
 def yolo_loss(y_true, y_pred):
-	#print('SHAPE: ', y_true.shape, y_pred.shape)
-	
 	print('\n\n\n\n')
 	y_true1 = K.reshape(y_true, [-1,4,4,5])
 	y_pred1 = K.reshape(y_pred, [-1,4,4,5])
-
 	iou = iouFinder(y_true1, y_pred1)
 	iou = K.reshape(iou, [-1,4,4,1])
-	
 	y_true = K.concatenate((y_true1[:,:,:,0:4], iou), axis = 3)
-	y_true = K.reshape(y_true, [-1, 80])
-	#print('\niou Shape:\n{}\n\n'.format(iou.shape))
-	#assert False
-	return K.mean(K.square((y_pred - y_true)), axis=1)
+	#y_true = K.reshape(y_true, [-1, 80])
+	y_pred = K.reshape(y_pred, [-1, 4, 4, 5])
+	
+	coord_loss =  
+	5*K.mean((
+		K.square(
+			K.sum(
+				(y_pred[:,:,:,0:2] - y_true[:,:,:,0:2]), axis=3))), axis=3 )
+	
+	size_loss = 
+	5*K.mean((
+		K.square(
+			K.sqrt(y_pred[:,:,:,2:4]) - K.sqrt(y_true[:,:,:,2:4]))), axis=3 )
+	
+	confidence_loss = 
+	0.5*K.mean((
+		K.square(
+			y_pred[:,:,:,4] - y_true[:,:,:,4])), axis=3 )
+	
+	return coord_loss+size_loss+confidence_loss
 
 
 #S,S,B[conf_max]
@@ -39,9 +51,9 @@ def kijFinder(y_pred):
 
 #S,S,B[coords!=0]
 def kiFinder(y_true):
-	x_zero = K.equal(y_true[:,:,0], 0)
-	y_zero = K.equal(y_true[:,:,1], 0)
-	xy_zero = K.equal(x_zero, y_zero)
+	x_zero = K.equal(y_true[:,:,0], 0)	# x=0 -> 1
+	y_zero = K.equal(y_true[:,:,1], 0)	# y=0 -> 1
+	xy_zero = K.equal(x_zero, y_zero)	# 1,1 -> 1, 0,0 -> 1 
 	return xy_zero
 
 
