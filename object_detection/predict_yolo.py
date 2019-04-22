@@ -2,7 +2,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from custom_loss1 import yolo_loss
 from input_data import yolo_input_pippeline
-from custom_metrics import my_accuracy
+from custom_metrics import metric_iou
 import numpy as np
 import bbox
 
@@ -27,7 +27,7 @@ model = tf.keras.models.model_from_json(json_model)
 model.compile(
 	optimizer='adam',				
 	loss=yolo_loss,
-	metrics=[my_accuracy])		
+	metrics=[metric_iou])		
 
 #<======================_WEIGHTS_LOAD_======================>
 model.load_weights('./weight/model_yolo_5ep')

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from custom_loss1 import yolo_loss
 from input_data import yolo_input_pippeline
-from custom_metrics import my_accuracy
+from custom_metrics import metric_iou
 
 
 #<==============================_LOAD_INPUT_DATA_==============================>
