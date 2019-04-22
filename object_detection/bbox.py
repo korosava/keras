@@ -109,25 +109,49 @@ def predict_to_loss(
 # generated bboxes -> loss input shape
 def labels_to_loss(
 	bboxes,
-	offsets,
 	num_cells,
 	num_bboxes,
-	img_size):
+	img_size,
+	num_imgs):
 
-	num_imgs = len(offsets)
 	cell_size = int(img_size/num_cells)
-	norm_bboxes,offsets = normalize_bbox(bboxes, img_size, cell_size)
+	norm_bboxes, offsets = normalize_bbox(bboxes, img_size, cell_size)
 	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes*4])
 
 	for img in range(num_imgs):
 		for obj in range(len(offsets[0])):
 			x_offset,y_offset = offsets[img,obj]
-			labels[img,x_offset,y_offset] = bboxes[img,obj]
+			labels[img,x_offset,y_offset] = bboxes[img,obj]	
 
 	confidences = np.ones([num_imgs,num_cells,num_cells,1])
 	labels = np.concatenate((labels, confidences), axis=3)
 	labels = np.reshape(labels,[-1,num_cells*num_cells*num_bboxes*5])
-	return labels
+	return labels, offsets
+
+
+def loss_to_labels(
+	labels,
+	offsets,
+	num_cells,
+	num_bboxes,
+	img_size):
+	num_imgs = len(offsets)
+	cell_size = int(img_size/num_cells)
+	num_objects = len(offsets[0])
+	labels = np.reshape(labels, [-1,num_cells,num_cells,num_bboxes*5])
+	confidences = labels[:,:,:,4]
+	confidences = np.reshape(confidences, [-1, num_cells*num_cells*num_bboxes])
+	labels = labels[:,:,:,0:4]
+
+	bboxes = np.zeros([num_imgs, num_objects, 4])
+	for img in range(num_imgs):
+		for obj in range(num_objects):
+			x_offset,y_offset = offsets[img,obj]
+			bboxes[img,obj] = labels[img,x_offset,y_offset]
+			
+	bboxes = restore_bbox(bboxes, offsets, img_size, cell_size)
+	
+	return bboxes, confidences
 
 
 #<==================================_BBOXES_&_IMAGE_PLOTTING_==================================>

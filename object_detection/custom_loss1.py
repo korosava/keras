@@ -11,7 +11,7 @@ import bbox
 
 
 def yolo_loss(y_true, y_pred):
-	print('SHAPE: ', y_true.shape, y_pred.shape)
+	#print('SHAPE: ', y_true.shape, y_pred.shape)
 	
 	print('\n\n\n\n')
 	y_true1 = K.reshape(y_true, [-1,4,4,5])
@@ -50,7 +50,7 @@ def iouFinder(y_true, y_pred):
 	coord2 = y_pred[:,:,:,0:4]
 	coords = K.concatenate((coord1,coord2), axis=3)
 	coords = K.reshape(coords, [-1,8])####
-	res = K.map_fn(iou, coords,dtype='float32')
+	res = K.map_fn(iou, coords, dtype='float32')
 	return res
 
 
@@ -61,21 +61,22 @@ def iou(coords):
 	w_I = K.minimum(x1 + w1, x2 + w2) - K.maximum(x1, x2)
 	h_I = K.minimum(y1 + h1, y2 + h2) - K.maximum(y1, y2)
 	
-	def i_dev_u(): return K.cast((w_I*h_I) / (w1*h1+w2*h2 - w_I*h_I),'float32')
-	def zero1(): return K.cast(0.0,'float32')
+	def i_dev_u(): return K.cast((w_I*h_I) / (w1*h1+w2*h2 - w_I*h_I), 'float32')
+	def zero1(): return K.cast(0.0, 'float32')
 	# нема перетину -> res=0
 	# є перетин -> res = I/U
-	res = tf.cond(w_I<=0, zero1, i_dev_u)
-	res = tf.cond(h_I<=0, zero1, i_dev_u)
+	###
+	
+	res = tf.cond(tf.logical_or(w_I<=0,h_I<=0), zero1, i_dev_u)
 	return res
 
 
 
 if __name__ == '__main__':
-	a = np.ones((2,2,7))
-	b = np.zeros((2,2,7))
-	a[:,:,0]=1; a[:,:,1]=2; a[:,:,2]=3; a[:,:,3]=4
-	b[:,:,0]=1; b[:,:,1]=2; b[:,:,2]=3; b[:,:,3]=4
+	a = np.ones((2,2,2,7))
+	b = np.zeros((2,2,2,7))
+	a[:,:,:,0]=1.5; a[:,:,:,1]=2.3; a[:,:,:,2]=3.1; a[:,:,:,3]=4
+	b[:,:,:,0]=1; b[:,:,:,1]=2; b[:,:,:,2]=3; b[:,:,:,3]=4
 	res = iouFinder(a, b)
 	
 	print(K.eval(res), res.shape, sep='\n')

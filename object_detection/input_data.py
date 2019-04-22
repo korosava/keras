@@ -63,12 +63,12 @@ def yolo_input_pippeline(
 	train=True):
 	# CREATE
 	imgs, bboxes = bx.create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects, channels)
-	# NORMALIZE
+	# NORMALIZE IMG
 	imgs = bx.normalize_img(imgs)
-	bboxes, offsets = bx.normalize_bbox(bboxes, img_size, cell_size)
 	# TRANSFORM TO YOLO SHAPE
 	num_cells = int(img_size/cell_size)
-	bboxes = bx.labels_to_loss(bboxes,offsets,num_cells,num_bboxes,img_size)
+	# NORMALIZE+TRANSFORM BBOXES
+	bboxes, offsets = bx.labels_to_loss(bboxes,num_cells,num_bboxes,img_size,num_imgs)
 
 	if train:
 		return (imgs, bboxes)
