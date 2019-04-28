@@ -2,11 +2,18 @@ import tensorflow as tf
 from custom_loss import yolo_loss
 from input_data import yolo_input_pippeline
 from custom_metrics import metric_iou
+from tensorflow.python.keras.callbacks import TensorBoard
+from time import time
+from custom_tensorBoard import CustomTensorBoard as Ctb
+
+
+#<==============================_DISABLE_WARNINGS_==============================>
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 #<==============================_LOAD_INPUT_DATA_==============================>
 train = yolo_input_pippeline(
-	num_imgs=50000,  
+	num_imgs=1000,  
 	img_size=28, 
 	cell_size=7, 
 	min_object_size=3, 
@@ -17,10 +24,11 @@ train = yolo_input_pippeline(
 	train=True)
 imgs, bboxes = train
 
+
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
-tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1_1ep', write_graph=True)
-callbacks = [tbCallBack]
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test')
+callbacks = [tbCallBack,]
 
 
 #<==============================_LOAD_CLEAR_MODEL_==============================>
@@ -34,9 +42,8 @@ model.compile(
 	)			 			#tf.keras.metrics
 
 
-#<==============================_LOAD_FULL_MODEL_==============================>
-#model = tf.keras.models.load_model('./full_model/model_yolo_10ep.h5')
-
+#<======================_WEIGHTS_LOAD_======================>
+model.load_weights('./weight/model_yolo_1_test')
 
 #<==============================_TRAIN_MODEL_==============================>
 model.fit(
@@ -44,12 +51,16 @@ model.fit(
 	bboxes,
 	batch_size=100,
 	epochs=1,
-	verbose=1,
+	verbose=2,
 	callbacks = callbacks
 	)
 
 
-#<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_1_1ep.h5')
-model.save_weights('weight/model_yolo_1_1ep')
+#print('\n\nloss: {}\n\n iou: {}'.format(tbCallBack.losses, tbCallBack.accs))
 
+'''
+#<======================_SAVE_WEIGHTS_&_MODEL_======================>
+model.save('full_model/model_yolo_1_test.h5')
+model.save_weights('weight/model_yolo_1_test')
+
+'''

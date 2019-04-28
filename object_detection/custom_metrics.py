@@ -1,5 +1,5 @@
 import tensorflow as tf
-import custom_loss1
+import custom_loss
 from tensorflow.python.keras._impl.keras import backend as K
 
 
@@ -9,7 +9,7 @@ def metric_iou(y_true, y_pred):
 	y_true1 = K.reshape(y_true, [-1,4,4,5])
 	y_pred1 = K.reshape(y_pred, [-1,4,4,5])
 
-	iou = custom_loss1.iouFinder(y_true1, y_pred1) # вектор
+	iou = custom_loss.iouFinder(y_true1, y_pred1) # вектор
 	#iou = K.reshape(iou, [-1,4,4,1])
 	#y_true = K.concatenate((y_true1[:,:,:,0:4], iou), axis = 3)
 	#acuracy = y_true[:,:,:,4]*y_pred1[:,:,:,4]
