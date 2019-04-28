@@ -21,5 +21,5 @@ model.add(ks.layers.Dense(4))
 
 #<======================_SAVE_CLEAR_MODEL_======================>
 json_model = model.to_json()
-with open('../saved_model/modelyolo_1.json', 'wt', encoding='utf-8') as fileobj:
+with open('../saved_model/model_coords.json', 'wt', encoding='utf-8') as fileobj:
 	fileobj.write(json_model)

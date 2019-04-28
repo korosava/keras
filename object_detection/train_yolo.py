@@ -1,5 +1,5 @@
 import tensorflow as tf
-from custom_loss1 import yolo_loss
+from custom_loss import yolo_loss
 from input_data import yolo_input_pippeline
 from custom_metrics import metric_iou
 
@@ -19,12 +19,12 @@ imgs, bboxes = train
 
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
-tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_3_1ep', write_graph=True)
+tbCallBack = tf.keras.callbacks.TensorBoard(log_dir='./log_dir/modelyolo_1_1ep', write_graph=True)
 callbacks = [tbCallBack]
 
 
 #<==============================_LOAD_CLEAR_MODEL_==============================>
-with open('./saved_model/modelyolo_3.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
@@ -50,6 +50,6 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_3_1ep.h5')
-model.save_weights('weight/model_yolo_3_1ep')
+model.save('full_model/model_yolo_1_1ep.h5')
+model.save_weights('weight/model_yolo_1_1ep')
 

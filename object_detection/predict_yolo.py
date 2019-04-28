@@ -1,6 +1,6 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from custom_loss1 import yolo_loss
+from custom_loss import yolo_loss
 from input_data import yolo_input_pippeline
 from custom_metrics import metric_iou
 import numpy as np

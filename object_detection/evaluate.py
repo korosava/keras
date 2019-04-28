@@ -1,6 +1,6 @@
 import tensorflow as tf
 from input_data import transform_to_conv
-from custom_loss1 import yolo_loss
+from custom_loss import yolo_loss
 from input_data import yolo_input_pippeline
 from custom_metrics import my_accuracy
 
