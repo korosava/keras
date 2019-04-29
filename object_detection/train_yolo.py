@@ -1,9 +1,7 @@
 import tensorflow as tf
 from custom_loss import yolo_loss
-from input_data import yolo_input_pippeline
 from custom_metrics import metric_iou
-from tensorflow.python.keras.callbacks import TensorBoard
-from time import time
+from input_data import yolo_input_pippeline
 from custom_tensorBoard import CustomTensorBoard as Ctb
 
 
@@ -24,10 +22,11 @@ train = yolo_input_pippeline(
 	train=True)
 imgs, bboxes = train
 
-
+ 
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
-tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test')
+#next_global_iter = (num_imgs/batch_size)*epochs
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test', global_iter=30)
 callbacks = [tbCallBack,]
 
 
@@ -45,22 +44,18 @@ model.compile(
 #<======================_WEIGHTS_LOAD_======================>
 model.load_weights('./weight/model_yolo_1_test')
 
+
 #<==============================_TRAIN_MODEL_==============================>
 model.fit(
 	imgs,
 	bboxes,
 	batch_size=100,
-	epochs=1,
+	epochs=2,
 	verbose=2,
 	callbacks = callbacks
 	)
 
 
-#print('\n\nloss: {}\n\n iou: {}'.format(tbCallBack.losses, tbCallBack.accs))
-
-'''
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
 model.save('full_model/model_yolo_1_test.h5')
 model.save_weights('weight/model_yolo_1_test')
-
-'''

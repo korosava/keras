@@ -17,7 +17,8 @@ def metric_iou(y_true, y_pred):
 	#greater_zero_iou = K.map_fn(greater_zero, iou, dtype='float32')
 	#acuracy = K.sum(iou) / K.sum(greater_zero_iou) # sum(iou) / num(iou > 0)
 	#print('\ngreater_zero Shape:\n{}\n\n'.format(greater_zero_iou.shape))
-	return K.max(iou)
+	max_iou = K.max(iou)
+	return max_iou
 
 def greater_zero(x):
 	return K.cast((tf.cond(x>0, lambda:1, lambda:0)), 'float32')

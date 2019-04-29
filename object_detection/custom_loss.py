@@ -17,6 +17,8 @@ def yolo_loss(y_true, y_pred):
 	iou = K.reshape(iou, [-1,4,4,1])
 	y_true = K.concatenate((y_true1[:,:,:,0:4], iou), axis = 3)
 	y_true = K.reshape(y_true, [-1, 80])
+	loss_op = K.mean(K.square(y_pred-y_true))
+
 	return K.mean(K.square(y_pred-y_true))
 
 
