@@ -10,34 +10,71 @@ import bbox
 
 
 def yolo_loss(y_true, y_pred):
-	#print('\n\n\n\n')
-	y_true1 = K.reshape(y_true, [-1,4,4,5])
-	y_pred1 = K.reshape(y_pred, [-1,4,4,5])
-	iou = iouFinder(y_true1, y_pred1)
+	l_coord = 5
+	l_noobj = 0.5
+	
+	y_true = K.reshape(y_true, [-1,4,4,5])
+	y_pred = K.reshape(y_pred, [-1,4,4,5])
+	iou = iouFinder(y_true, y_pred)
 	iou = K.reshape(iou, [-1,4,4,1])
-	y_true = K.concatenate((y_true1[:,:,:,0:4], iou), axis = 3)
-	y_true = K.reshape(y_true, [-1, 80])
-	loss_op = K.mean(K.square(y_pred-y_true))
+	y_true = K.concatenate((y_true[:,:,:,0:4], iou), axis = 3)
+	kij = kiFinder(y_true)
+	kij_not = K.cast(tf.logical_not(K.cast(kij, 'bool')), 'float32')
 
-	return K.mean(K.square(y_pred-y_true))
+	loss_coord = (
+	l_coord *
+		K.mean(
+			K.sum(
+				K.sum(
+					kij *
+						K.sum(
+							K.square(
+								y_pred[:,:,:,0:2]-y_true[:,:,:,0:2]), axis=3), axis=2), axis=1), axis=0))
+	loss_size = (
+	l_coord *
+		K.mean(
+			K.sum(
+				K.sum(
+					kij *
+						K.sum(
+							K.square(
+								K.sqrt(y_pred[:,:,:,2:4]) - K.sqrt(y_true[:,:,:,2:4])), axis=3), axis=2), axis=1), axis=0))
+	loss_confidence_1 = (
+	K.mean(
+		K.sum(
+			K.sum(
+				kij *
+					K.square(
+						y_pred[:,:,:,4]-y_true[:,:,:,4]), axis=2), axis=1), axis=0))
+	loss_confidence_2 = (
+	l_noobj *
+		K.mean(
+			K.sum(
+				K.sum(
+					kij_not *
+						K.square(
+							y_pred[:,:,:,4]-y_true[:,:,:,4]), axis=2), axis=1), axis=0))
+
+	return loss_coord + loss_size + loss_confidence_1+loss_confidence_2
 
 
-#S,S,B[conf_max]
+# batch,S,S,B[conf_max]
 def kijFinder(y_pred):
 	shape = y_pred.shape
-	bbox1 = np.reshape(y_pred[:,:,4], [shape[0], shape[1],1])
-	bbox2 = np.reshape(y_pred[:,:,9], [shape[0], shape[1],1])
+	bbox1 = np.reshape(y_pred[:,:,:,4], [shape[0], shape[1], 1])
+	bbox2 = np.reshape(y_pred[:,:,:,9], [shape[0], shape[1], 1])
 	bboxes_conf = np.concatenate((bbox1,bbox2), axis=2)
 	res = K.argmax(bboxes_conf, axis=2)
 	return res
 
 
-#S,S,B[coords!=0]
+# batch,S,S,B[coords!=0]
 def kiFinder(y_true):
-	x_zero = K.equal(y_true[:,:,0], 0)	# x=0 -> 1
-	y_zero = K.equal(y_true[:,:,1], 0)	# y=0 -> 1
-	xy_zero =  tf.logical_and(x_zero, y_zero)	# 1,1 -> 1
-	return xy_zero
+	x_zero = K.equal(y_true[:,:,:,0], 0)	# x=0 -> 1
+	y_zero = K.equal(y_true[:,:,:,1], 0)	# y=0 -> 1
+	xy_zero =  tf.logical_not(tf.logical_and(x_zero, y_zero))	# 1,1 -> 0
+
+	return K.cast(xy_zero, 'float32')
 
 
 def iouFinder(y_true, y_pred):

@@ -11,7 +11,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 
 #<==============================_LOAD_INPUT_DATA_==============================>
 train = yolo_input_pippeline(
-	num_imgs=1000,  
+	num_imgs=5000,  
 	img_size=28, 
 	cell_size=7, 
 	min_object_size=3, 
@@ -26,7 +26,7 @@ imgs, bboxes = train
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
 #next_global_iter = (num_imgs/batch_size)*epochs
-tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test', global_iter=50)
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test3', global_iter=0)
 callbacks = [tbCallBack,]
 
 
@@ -42,7 +42,7 @@ model.compile(
 
 
 #<======================_WEIGHTS_LOAD_======================>
-model.load_weights('./weight/model_yolo_1_test')
+#model.load_weights('./weight/model_yolo_1_test')
 
 
 #<==============================_TRAIN_MODEL_==============================>
@@ -50,12 +50,12 @@ model.fit(
 	imgs,
 	bboxes,
 	batch_size=100,
-	epochs=2,
+	epochs=3,
 	verbose=2,
 	callbacks = callbacks
 	)
 
 
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_1_test.h5')
-model.save_weights('weight/model_yolo_1_test')
+model.save('full_model/model_yolo_1_test3.h5')
+model.save_weights('weight/model_yolo_1_test3')
