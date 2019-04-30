@@ -22,11 +22,11 @@ train = yolo_input_pippeline(
 	train=True)
 imgs, bboxes = train
 
- 
+
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
 #next_global_iter = (num_imgs/batch_size)*epochs
-tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test', global_iter=30)
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test', global_iter=50)
 callbacks = [tbCallBack,]
 
 
