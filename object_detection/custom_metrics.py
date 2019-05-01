@@ -6,8 +6,8 @@ from tensorflow.python.keras._impl.keras import backend as K
 def metric_iou(y_true, y_pred):
 	#print('SHAPE: ', y_true.shape, y_pred.shape)
 	#print('\n\n\n\n')
-	y_true1 = K.reshape(y_true, [-1,4,4,5])
-	y_pred1 = K.reshape(y_pred, [-1,4,4,5])
+	y_true1 = K.reshape(y_true, [-1,4,4,2,5])
+	y_pred1 = K.reshape(y_pred, [-1,4,4,2,5])
 
 	iou = custom_loss.iouFinder(y_true1, y_pred1) # вектор
 	#iou = K.reshape(iou, [-1,4,4,1])

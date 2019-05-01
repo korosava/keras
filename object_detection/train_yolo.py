@@ -17,7 +17,7 @@ train = yolo_input_pippeline(
 	min_object_size=3, 
 	max_object_size=7, 
 	num_objects=1,
-	num_bboxes=1,
+	num_bboxes=2,
 	channels=1,
 	train=True)
 imgs, bboxes = train
@@ -26,12 +26,12 @@ imgs, bboxes = train
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
 #next_global_iter = (num_imgs/batch_size)*epochs
-tbCallBack = Ctb(log_dir='./log_dir/modelyolo_1_test3', global_iter=0)
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_4_test1', global_iter=0)
 callbacks = [tbCallBack,]
 
 
 #<==============================_LOAD_CLEAR_MODEL_==============================>
-with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/modelyolo_4.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
@@ -42,7 +42,7 @@ model.compile(
 
 
 #<======================_WEIGHTS_LOAD_======================>
-#model.load_weights('./weight/model_yolo_1_test')
+#model.load_weights('./weight/model_yolo_4_test1')
 
 
 #<==============================_TRAIN_MODEL_==============================>
@@ -50,12 +50,12 @@ model.fit(
 	imgs,
 	bboxes,
 	batch_size=100,
-	epochs=3,
+	epochs=10,
 	verbose=2,
 	callbacks = callbacks
 	)
 
 
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_1_test3.h5')
-model.save_weights('weight/model_yolo_1_test3')
+model.save('full_model/model_yolo_4_test1.h5')
+model.save_weights('weight/model_yolo_4_test1')

@@ -116,15 +116,17 @@ def labels_to_loss(
 
 	cell_size = int(img_size/num_cells)
 	norm_bboxes, offsets = normalize_bbox(bboxes, img_size, cell_size)
-	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes*4])
+	labels = np.zeros([num_imgs,num_cells,num_cells,num_bboxes,4])
 
 	for img in range(num_imgs):
 		for obj in range(len(offsets[0])):
-			x_offset,y_offset = offsets[img,obj]
-			labels[img,x_offset,y_offset] = bboxes[img,obj]	
+			for bbox in range(num_bboxes):
+				x_offset,y_offset = offsets[img,obj]
+				labels[img,x_offset,y_offset,bbox] = bboxes[img,obj] # !!!
 
-	confidences = np.ones([num_imgs,num_cells,num_cells,1])
-	labels = np.concatenate((labels, confidences), axis=3)
+	confidences = np.ones([num_imgs,num_cells,num_cells,num_bboxes,1]) # !!!
+	
+	labels = np.concatenate((labels, confidences), axis=4)
 	labels = np.reshape(labels,[-1,num_cells*num_cells*num_bboxes*5])
 	return labels, offsets
 
@@ -138,20 +140,22 @@ def loss_to_labels(
 	num_imgs = len(offsets)
 	cell_size = int(img_size/num_cells)
 	num_objects = len(offsets[0])
-	labels = np.reshape(labels, [-1,num_cells,num_cells,num_bboxes*5])
-	confidences = labels[:,:,:,4]
+	labels = np.reshape(labels, [-1,num_cells,num_cells,num_bboxes,5])
+	confidences = labels[:,:,:,:,4]
 	confidences = np.reshape(confidences, [-1, num_cells*num_cells*num_bboxes])
-	labels = labels[:,:,:,0:4]
+	labels = labels[:,:,:,:,0:4]
 
-	bboxes = np.zeros([num_imgs, num_objects, 4])
+	bboxes_batch = np.zeros([num_imgs, num_bboxes, num_objects, 4])
 	for img in range(num_imgs):
 		for obj in range(num_objects):
-			x_offset,y_offset = offsets[img,obj]
-			bboxes[img,obj] = labels[img,x_offset,y_offset]
-			
-	bboxes = restore_bbox(bboxes, offsets, img_size, cell_size)
+			for bbox in range(num_bboxes):
+				x_offset,y_offset = offsets[img,obj]
+				bboxes_batch[img,bbox,obj] = labels[img,x_offset,y_offset,bbox] # !!!
+
+	for bbox in range(num_bboxes):
+		bboxes_batch[:,bbox,:] = restore_bbox(bboxes_batch[:, bbox, :], offsets, img_size, cell_size)
 	
-	return bboxes, confidences
+	return bboxes_batch, confidences
 
 
 #<==================================_BBOXES_&_IMAGE_PLOTTING_==================================>
@@ -162,6 +166,18 @@ def build_bbox(imgs, bboxes, img_size):
 		for bbox in bboxes[i]:
 			plt.gca().add_patch(matplotlib.patches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3], ec='r', fc='none'))
 		
+		plt.show()
+
+def build_bboxes(imgs, bboxes_batch):
+	imgs_shape = imgs.shape
+	bboxes_shape = bboxes_batch.shape
+	for i in range(imgs_shape[0]):
+		matplotlib.pyplot.figure()
+		plt.imshow(imgs[i].T, cmap='Greys', interpolation='none', origin='lower', extent=[0, imgs_shape[1], 0, imgs_shape[1]], vmin=0, vmax=255)
+		for bbox in range(bboxes_shape[1]):
+			for obj in range(bboxes_shape[2]):
+				x,y,w,h = bboxes_batch[i,bbox,obj,:]
+				plt.gca().add_patch(matplotlib.patches.Rectangle((x, y), w, h, ec='r', fc='none'))
 		plt.show()
 
 

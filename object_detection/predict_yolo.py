@@ -1,10 +1,14 @@
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from custom_loss import yolo_loss
-from input_data import yolo_input_pippeline
 from custom_metrics import metric_iou
+from input_data import yolo_input_pippeline
+import matplotlib.pyplot as plt
 import numpy as np
 import bbox
+
+
+#<==============================_DISABLE_WARNINGS_==============================>
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 #<======================_INPUT_DATA_======================>
@@ -15,13 +19,13 @@ test = yolo_input_pippeline(
 	min_object_size=3, 
 	max_object_size=7, 
 	num_objects=1,
-	num_bboxes=1,
+	num_bboxes=2,
 	channels=1,
 	train=False)
 imgs, bboxes, offsets = test
 
 #<======================_LOAD_CLEAR_MODEL_======================>
-with open('./saved_model/modelyolo_1.json', 'rt', encoding='utf-8') as fileobj:
+with open('./saved_model/modelyolo_4.json', 'rt', encoding='utf-8') as fileobj:
 	json_model = fileobj.read()
 model = tf.keras.models.model_from_json(json_model)
 model.compile(
@@ -29,22 +33,22 @@ model.compile(
 	loss=yolo_loss,
 	metrics=[metric_iou])		
 
+
 #<======================_WEIGHTS_LOAD_======================>
-model.load_weights('./weight/model_yolo_5ep')
+model.load_weights('./weight/model_yolo_4_test1')
 
 
 #<======================_MODEL_PREDICT_======================>
 bboxes = model.predict(imgs)
 
+bboxes = np.reshape(bboxes, [-1, 4, 4, 2, 5])
 
-bboxes = np.reshape(bboxes, [-1, 4, 4, 5])
-bboxes, confidences = bbox.loss_to_labels(bboxes, offsets, 4, 1, 28)
+bboxes_batch, confidences = bbox.loss_to_labels(bboxes, offsets, 4, 2, 28)
 imgs = bbox.restore_imgs(imgs)
-
-#print('\nconfidences:\n{}\n\n'.format(confidences))
 imgs = np.reshape(imgs, [-1, 28, 28])
 
-print('\nbboex:\n',bboxes)
-bbox.build_bbox(imgs, bboxes, img_size=28)
+print('\nbbox:\n', bboxes_batch)
+bbox.build_bboxes(imgs, bboxes_batch)
 
-# ПОМИЛКА, IMG БІЛИЙ
+
+#print('\nconfidences:\n{}\n\n'.format(confidences))
