@@ -23,6 +23,17 @@ def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_object
 	return (imgs, bboxes)
 
 
+# повертає масив [batch, 4]
+def bbox_from_file(data_file):
+	labels = []
+	with open(data_file, 'rt') as file:
+		for line in file:
+			line = line[0:-2]
+			arr = line.split(" ")
+			labels.append(arr)
+	return np.asarray(labels, 'int32')
+
+
 #<==================================_NORMALIZING_==================================>
 def normalize_img(imgs):
 	return imgs/256+0.001

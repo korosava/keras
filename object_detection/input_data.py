@@ -1,6 +1,9 @@
 import tensorflow as tf
 import numpy as np
 import bbox as bx
+from os.path import isfile, join
+import os
+import dataGen
 
 
 '''
@@ -77,10 +80,7 @@ def yolo_input_pippeline(
 
 
 if __name__ == '__main__':
-	print('\ninput_data:')
-	data = load_data()
-	train, test = transform_to_dense(data)
-	f1,l1=train
-	f2,l2=test
-	print('train: {}\ntest: {}'.format(np.array(f1).shape, np.array(f2).shape))
+	data_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\002'
+	save_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\004'
+	dataGen.DataSetGenerator(data_dir).resize_imgs(save_dir=save_dir, size=(128,128))
 
