@@ -4,7 +4,7 @@ import bbox as bx
 from os.path import isfile, join
 import os
 import dataGen
-
+import matplotlib.pyplot as plt
 
 '''
 data inputs format:
@@ -78,9 +78,31 @@ def yolo_input_pippeline(
 	else:
 		return (imgs, bboxes, offsets)
 
+# ПОМИЛКА, BBOX ПОГАНО ВІДНОВЛЮЄТЬСЯ
+# BBOX У НЕВІДОМОМУ ФОРМАТІ (X,Y,W,H) - ?
+# ДЛЯ ЧОГО ТРАНСПОНУВАТИ ЗОБРАЖЕННЯ В BUILD_BBOXES - ?
+def yolo_input_pippeline2 (num_cells, num_objects, num_bboxes, train=True):
+	bboxes = bx.bbox_from_file(data_file='./data/code_labels.txt', num_objects=num_objects)
+	imgs = bx.img_from_file(data_dir='./data/code')
+	imgs = bx.normalize_img(imgs)
+	num_imgs, img_size = imgs.shape[0:2]
+	bboxes, offsets = bx.labels_to_loss(bboxes, num_cells, num_bboxes, img_size, num_imgs)
+
+	if train:
+		return (imgs, bboxes)
+	else:
+		return (imgs, bboxes, offsets)
+
+
 
 if __name__ == '__main__':
+	'''
 	data_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\002'
 	save_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\004'
 	dataGen.DataSetGenerator(data_dir).resize_imgs(save_dir=save_dir, size=(128,128))
-
+	'''
+	imgs,bboxes,offsets = yolo_input_pippeline2(num_cells=4, num_objects=1, num_bboxes=2, train=False)
+	bboxes_batch, confidences = bx.loss_to_labels(bboxes, offsets, num_cells=4, num_bboxes=2, img_size=128)
+	imgs = bx.restore_imgs(imgs)
+	imgs = np.reshape(imgs, [-1, 128, 128, 3])
+	bx.build_bboxes(imgs, bboxes_batch)

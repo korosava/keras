@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from copy import deepcopy
 from tensorflow.python.keras._impl.keras import backend as K
+import os
 
 
 #<==================================_BBOX_&_IMAGE_CREATING_==================================>
@@ -10,7 +11,7 @@ from tensorflow.python.keras._impl.keras import backend as K
 def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_objects, channels):
 
 	bboxes = np.zeros((num_imgs, num_objects, 4))
-	imgs = np.zeros((num_imgs, img_size, img_size,channels))  # set background to 0
+	imgs = np.zeros((num_imgs, img_size, img_size, channels))  # set background to 0
 
 	for i_img in range(num_imgs):
 		for i_object in range(num_objects):
@@ -22,16 +23,22 @@ def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_object
 		bboxes[i_img, i_object] = [x, y, w, h]
 	return (imgs, bboxes)
 
-
 # повертає масив [batch, 4]
-def bbox_from_file(data_file):
+def bbox_from_file(data_file, num_objects):
 	labels = []
 	with open(data_file, 'rt') as file:
 		for line in file:
 			line = line[0:-2]
 			arr = line.split(" ")
 			labels.append(arr)
-	return np.asarray(labels, 'int32')
+	return np.asarray(labels, 'float32').reshape([-1, num_objects, 4])
+
+def img_from_file(data_dir):
+	imgs = []
+	for file_name in os.listdir(data_dir):
+		img = plt.imread(os.path.join(data_dir, file_name))
+		imgs.append(img)
+	return np.asarray(imgs, 'float32')
 
 
 #<==================================_NORMALIZING_==================================>
@@ -39,7 +46,7 @@ def normalize_img(imgs):
 	return imgs/256+0.001
 
 def restore_imgs(imgs):
-	return (imgs-0.001)*256
+	return np.asarray(((imgs-0.001)*256), dtype='int')
 
 #[img_i,bbox_i,coords]
 # нормалізація bbox:
@@ -51,8 +58,12 @@ def restore_imgs(imgs):
 def normalize_bbox(bboxes, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
 	# лівий нижній край -> центр
-	bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
-	bboxes[:,:,1]+=bboxes[:,:,3]/2 # y+h/2
+	#bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
+	#bboxes[:,:,1]+=bboxes[:,:,3]/2 # y+h/2
+	# верхній лівий край -> центр
+	#bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
+	#bboxes[:,:,1]-=bboxes[:,:,3]/2 # y+h/2
+
 	bboxes[:,:,2:4]/=img_size # (w,h) відносто розмірів зображення
 
 	offsets = np.int_(bboxes[:,:,0:2]/cell_size) #(x,y) відносно кожної клітинки (int до меншого)
@@ -65,10 +76,11 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
 	bboxes[:,:,0:2] *= cell_size
 	bboxes[:,:,0:2] += cell_size*offsets #(x,y) відносно кожної клітинки
-	# центр -> лівий нижній край
 	bboxes[:,:,2:4]*=img_size # (w,h) відносто розмірів зображення
+
+	# центр -> лівий верхній край
 	bboxes[:,:,0]-=bboxes[:,:,2]/2 # x-w/2
-	bboxes[:,:,1]-=bboxes[:,:,3]/2 # y-h/2
+	bboxes[:,:,1]+=bboxes[:,:,3]/2 # y-h/2
 	bboxes = np.int_(bboxes)
 	return bboxes
 
@@ -184,11 +196,12 @@ def build_bboxes(imgs, bboxes_batch):
 	bboxes_shape = bboxes_batch.shape
 	for i in range(imgs_shape[0]):
 		matplotlib.pyplot.figure()
-		plt.imshow(imgs[i].T, cmap='Greys', interpolation='none', origin='lower', extent=[0, imgs_shape[1], 0, imgs_shape[1]], vmin=0, vmax=255)
+		plt.imshow(imgs[i], origin='lower')
 		for bbox in range(bboxes_shape[1]):
 			for obj in range(bboxes_shape[2]):
 				x,y,w,h = bboxes_batch[i,bbox,obj,:]
 				plt.gca().add_patch(matplotlib.patches.Rectangle((x, y), w, h, ec='r', fc='none'))
+		print(bboxes_batch[i])
 		plt.show()
 
 
