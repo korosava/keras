@@ -1,3 +1,5 @@
 
 *.jpeg
 img_labeling/BBox-Label-Tool/
+*.h5
+object_detection/weight/model_yolo_card_test1

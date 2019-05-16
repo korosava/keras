@@ -7,6 +7,7 @@ cell = 4
 bbox = 2
 coords = 5
 classes = 0
+# all same for squares, but input shape = (28,28,1)
 
 #<======================_CREATE_MODEL_======================>
 # послідовна модель, шар за шаром
