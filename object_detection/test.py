@@ -18,10 +18,11 @@ print(a, '\n\n')
 _max = kijFinder(a)
 print(_max, '\n\n')
 '''
+'''
 data_file = './data/code_labels.txt'
 labels = bbox.bbox_from_file(data_file, num_objects = 1)
 for arr in labels:
 	print(arr)
-
 print(labels.shape)
 print(arr.dtype)
+'''

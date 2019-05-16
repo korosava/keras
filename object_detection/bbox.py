@@ -28,17 +28,40 @@ def bbox_from_file(data_file, num_objects):
 	labels = []
 	with open(data_file, 'rt') as file:
 		for line in file:
-			line = line[0:-2]
+			line = line[0:-1]
 			arr = line.split(" ")
 			labels.append(arr)
-	return np.asarray(labels, 'float32').reshape([-1, num_objects, 4])
+		labels = convert_bbox_format(np.asarray(labels, dtype='float32'))
+	return labels.reshape([-1, num_objects, 4])
 
+# (лівий верх), (правий низ) -> (лівий верх), (ширина висота); (0 координат зліва зверху)
+def convert_bbox_format(bboxes):
+	new_bboxes = np.zeros([len(bboxes), 1, 4])
+	for i in range(len(bboxes)):
+		w = bboxes[i][2] - bboxes[i][0]
+		h = bboxes[i][3] - bboxes[i][1]
+		x = bboxes[i][0]
+		y = bboxes[i][1]
+		new_bboxes[i] = [x, y, w, h]
+	return new_bboxes
+
+
+# масив посортованих за номером name.number.jpeg зображень
 def img_from_file(data_dir):
 	imgs = []
+	file_names = os.listdir(data_dir)
+	for i in range(len(file_names)):
+		file_names[i] = file_names[i].split('.')
+		file_names[i][1] = int(file_names[i][1])
+	file_names.sort()
+	for i in range(len(file_names)):
+		file_names[i][1] = str(file_names[i][1])
+		file_names[i] = '.'.join(file_names[i])
+
 	for file_name in os.listdir(data_dir):
 		img = plt.imread(os.path.join(data_dir, file_name))
 		imgs.append(img)
-	return np.asarray(imgs, 'float32')
+	return np.asarray(imgs, 'int')
 
 
 #<==================================_NORMALIZING_==================================>
@@ -57,12 +80,9 @@ def restore_imgs(imgs):
 # 2: x_offset, y_offset
 def normalize_bbox(bboxes, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
-	# лівий нижній край -> центр
-	#bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
-	#bboxes[:,:,1]+=bboxes[:,:,3]/2 # y+h/2
-	# верхній лівий край -> центр
-	#bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
-	#bboxes[:,:,1]-=bboxes[:,:,3]/2 # y+h/2
+	# лівий верхній край -> центр (0 координат зліва зверху)
+	bboxes[:,:,0]+=bboxes[:,:,2]/2 # x+w/2
+	bboxes[:,:,1]+=bboxes[:,:,3]/2 # y+h/2
 
 	bboxes[:,:,2:4]/=img_size # (w,h) відносто розмірів зображення
 
@@ -76,11 +96,11 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
 	bboxes[:,:,0:2] *= cell_size
 	bboxes[:,:,0:2] += cell_size*offsets #(x,y) відносно кожної клітинки
-	bboxes[:,:,2:4]*=img_size # (w,h) відносто розмірів зображення
+	bboxes[:,:,2:4] *= img_size # (w,h) відносто розмірів зображення
 
-	# центр -> лівий верхній край
+	# центр -> лівий верхній край (0 координат зліва зверху)
 	bboxes[:,:,0]-=bboxes[:,:,2]/2 # x-w/2
-	bboxes[:,:,1]+=bboxes[:,:,3]/2 # y-h/2
+	bboxes[:,:,1]-=bboxes[:,:,3]/2 # y-h/2
 	bboxes = np.int_(bboxes)
 	return bboxes
 

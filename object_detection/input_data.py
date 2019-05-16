@@ -78,9 +78,7 @@ def yolo_input_pippeline(
 	else:
 		return (imgs, bboxes, offsets)
 
-# ПОМИЛКА, BBOX ПОГАНО ВІДНОВЛЮЄТЬСЯ
-# BBOX У НЕВІДОМОМУ ФОРМАТІ (X,Y,W,H) - ?
-# ДЛЯ ЧОГО ТРАНСПОНУВАТИ ЗОБРАЖЕННЯ В BUILD_BBOXES - ?
+# зображення та bbox з data_dir -> датасет
 def yolo_input_pippeline2 (num_cells, num_objects, num_bboxes, train=True):
 	bboxes = bx.bbox_from_file(data_file='./data/code_labels.txt', num_objects=num_objects)
 	imgs = bx.img_from_file(data_dir='./data/code')
