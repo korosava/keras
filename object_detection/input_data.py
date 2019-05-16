@@ -83,9 +83,9 @@ def yolo_input_pippeline2 (num_cells, num_objects, num_bboxes, train=True):
 	bboxes = bx.bbox_from_file(data_file='./data/code_labels.txt', num_objects=num_objects)
 	imgs = bx.img_from_file(data_dir='./data/code')
 	imgs = bx.normalize_img(imgs)
+	imgs, bboxes = bx.shuffle_data(imgs, bboxes)
 	num_imgs, img_size = imgs.shape[0:2]
 	bboxes, offsets = bx.labels_to_loss(bboxes, num_cells, num_bboxes, img_size, num_imgs)
-
 	if train:
 		return (imgs, bboxes)
 	else:

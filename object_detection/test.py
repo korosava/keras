@@ -26,3 +26,17 @@ for arr in labels:
 print(labels.shape)
 print(arr.dtype)
 '''
+
+a = [1,2,3]
+
+np.random.seed(12)
+np.random.shuffle(a)
+print(a)
+
+np.random.seed(12)
+np.random.shuffle(a)
+print(a)
+
+np.random.seed(12)
+np.random.shuffle(a)
+print(a)

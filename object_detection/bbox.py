@@ -45,6 +45,14 @@ def convert_bbox_format(bboxes):
 		new_bboxes[i] = [x, y, w, h]
 	return new_bboxes
 
+# shuffles imgs and it's bboxes
+def shuffle_data(imgs, bboxes):
+	seed = np.random.randint(low=1000)
+	np.random.seed(seed)
+	np.random.shuffle(imgs)
+	np.random.seed(seed)
+	np.random.shuffle(bboxes)
+	return (imgs, bboxes)
 
 # масив посортованих за номером name.number.jpeg зображень
 def img_from_file(data_dir):
