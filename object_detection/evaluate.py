@@ -41,7 +41,7 @@ model.compile(
 
 
 #<======================_WEIGHTS_LOAD_======================>
-model.load_weights('./weight/model_yolo_card_test1')
+model.load_weights('./weight/model_yolo_card_test2')
 
 
 #<======================_EVALUATE_MODEL_======================>

@@ -28,14 +28,15 @@ train = yolo_input_pippeline2(
 	num_cells=4,
 	num_objects=1,
 	num_bboxes=2,
-	return_offsets=0)
+	return_offsets=0,
+	data_dir='data/train')
 imgs, bboxes = train
 
 
 #<==============================_SET_CALLBACKS_==============================>
 # tensorboard --logdir ./log_dir
 # next_global_iter = (num_imgs/batch_size)*epochs
-tbCallBack = Ctb(log_dir='./log_dir/modelyolo_card_test1', global_iter=0)
+tbCallBack = Ctb(log_dir='./log_dir/modelyolo_card_test2', global_iter=0)
 callbacks = [tbCallBack,]
 
 
@@ -58,7 +59,7 @@ model.compile(
 model.fit(
 	imgs,
 	bboxes,
-	batch_size=10,
+	batch_size=64,
 	epochs=100,
 	verbose=2,
 	callbacks=callbacks
@@ -66,5 +67,5 @@ model.fit(
 
 
 #<======================_SAVE_WEIGHTS_&_MODEL_======================>
-model.save('full_model/model_yolo_card_test1.h5')
-model.save_weights('weight/model_yolo_card_test1')
+model.save('full_model/model_yolo_card_test2.h5')
+model.save_weights('weight/model_yolo_card_test2')
