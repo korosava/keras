@@ -28,7 +28,7 @@ train = yolo_input_pippeline2(
 	num_cells=4,
 	num_objects=1,
 	num_bboxes=2,
-	train=True)
+	return_offsets=0)
 imgs, bboxes = train
 
 

@@ -230,6 +230,6 @@ class DataSetGenerator:
 
 
 if __name__ == '__main__':
-	data_dir = 'data'
+	data_dir = 'data/train'
 	dsg = DataSetGenerator(data_dir)
-	dsg.resize_all_imgs(save_dir = './data1', size = (64,64))
+	dsg.resize_all_imgs(save_dir = False, size = (128,128))

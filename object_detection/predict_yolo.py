@@ -27,7 +27,8 @@ test = yolo_input_pippeline2(
 	num_cells=4,
 	num_objects=1,
 	num_bboxes=2,
-	train=False)
+	return_offsets=1,
+	data_dir='data/test')
 imgs, bboxes, offsets = test
 
 #<======================_LOAD_CLEAR_MODEL_======================>

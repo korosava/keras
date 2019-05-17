@@ -4,6 +4,7 @@ import matplotlib
 from copy import deepcopy
 from tensorflow.python.keras._impl.keras import backend as K
 import os
+from os.path import join
 
 
 #<==================================_BBOX_&_IMAGE_CREATING_==================================>
@@ -23,16 +24,24 @@ def create_rect(num_imgs, img_size, min_object_size, max_object_size, num_object
 		bboxes[i_img, i_object] = [x, y, w, h]
 	return (imgs, bboxes)
 
+
 # повертає масив [batch, 4]
-def bbox_from_file(data_file, num_objects):
+def bbox_from_file(bboxes_dir, num_objects):
 	labels = []
-	with open(data_file, 'rt') as file:
-		for line in file:
-			line = line[0:-1]
-			arr = line.split(" ")
-			labels.append(arr)
-		labels = convert_bbox_format(np.asarray(labels, dtype='float32'))
+	file_names = os.listdir(bboxes_dir)
+	for file_name in file_names:
+		with open(join(bboxes_dir, file_name), 'rt') as file:
+			read = 0
+			for line in file:
+				if read:
+					line = line[0:-1]
+					arr = line.split(" ")
+					labels.append(arr)
+				else:
+					read=1 # пропуск 1 стрічки
+	labels = convert_bbox_format(np.asarray(labels, dtype='float32'))
 	return labels.reshape([-1, num_objects, 4])
+
 
 # (лівий верх), (правий низ) -> (лівий верх), (ширина висота); (0 координат зліва зверху)
 def convert_bbox_format(bboxes):
@@ -45,6 +54,16 @@ def convert_bbox_format(bboxes):
 		new_bboxes[i] = [x, y, w, h]
 	return new_bboxes
 
+
+# масив посортованих за номером name.number.jpeg зображень
+def img_from_file(imgs_dir):
+	imgs = []
+	for file_name in os.listdir(imgs_dir):
+		img = plt.imread(os.path.join(imgs_dir, file_name))
+		imgs.append(img)
+	return np.asarray(imgs, 'int')
+
+
 # shuffles imgs and it's bboxes
 def shuffle_data(imgs, bboxes):
 	seed = np.random.randint(low=1000)
@@ -53,23 +72,6 @@ def shuffle_data(imgs, bboxes):
 	np.random.seed(seed)
 	np.random.shuffle(bboxes)
 	return (imgs, bboxes)
-
-# масив посортованих за номером name.number.jpeg зображень
-def img_from_file(data_dir):
-	imgs = []
-	file_names = os.listdir(data_dir)
-	for i in range(len(file_names)):
-		file_names[i] = file_names[i].split('.')
-		file_names[i][1] = int(file_names[i][1])
-	file_names.sort()
-	for i in range(len(file_names)):
-		file_names[i][1] = str(file_names[i][1])
-		file_names[i] = '.'.join(file_names[i])
-
-	for file_name in os.listdir(data_dir):
-		img = plt.imread(os.path.join(data_dir, file_name))
-		imgs.append(img)
-	return np.asarray(imgs, 'int')
 
 
 #<==================================_NORMALIZING_==================================>

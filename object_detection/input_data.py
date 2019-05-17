@@ -72,24 +72,27 @@ def yolo_input_pippeline(
 	num_cells = int(img_size/cell_size)
 	# NORMALIZE+TRANSFORM BBOXES
 	bboxes, offsets = bx.labels_to_loss(bboxes,num_cells,num_bboxes,img_size,num_imgs)
-
 	if train:
 		return (imgs, bboxes)
 	else:
 		return (imgs, bboxes, offsets)
 
+
 # зображення та bbox з data_dir -> датасет
-def yolo_input_pippeline2 (num_cells, num_objects, num_bboxes, train=True):
-	bboxes = bx.bbox_from_file(data_file='./data/code_labels.txt', num_objects=num_objects)
-	imgs = bx.img_from_file(data_dir='./data/code')
+def yolo_input_pippeline2 (num_cells, num_objects, num_bboxes, data_dir, return_offsets=False):
+	imgs_dir = join(data_dir, 'imgs')
+	bboxes_dir = join(data_dir, 'labels')
+	bboxes = bx.bbox_from_file(bboxes_dir=bboxes_dir, num_objects=num_objects)
+	imgs = bx.img_from_file(imgs_dir=imgs_dir)
 	imgs = bx.normalize_img(imgs)
 	imgs, bboxes = bx.shuffle_data(imgs, bboxes)
 	num_imgs, img_size = imgs.shape[0:2]
 	bboxes, offsets = bx.labels_to_loss(bboxes, num_cells, num_bboxes, img_size, num_imgs)
-	if train:
-		return (imgs, bboxes)
-	else:
+	if return_offsets:
 		return (imgs, bboxes, offsets)
+	else:
+		return (imgs, bboxes)
+		
 
 
 
@@ -99,7 +102,7 @@ if __name__ == '__main__':
 	save_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\004'
 	dataGen.DataSetGenerator(data_dir).resize_imgs(save_dir=save_dir, size=(128,128))
 	'''
-	imgs,bboxes,offsets = yolo_input_pippeline2(num_cells=4, num_objects=1, num_bboxes=2, train=False)
+	imgs,bboxes,offsets = yolo_input_pippeline2(num_cells=4, num_objects=1, num_bboxes=2, return_offsets=1, data_dir='data/train')
 	bboxes_batch, confidences = bx.loss_to_labels(bboxes, offsets, num_cells=4, num_bboxes=2, img_size=128)
 	imgs = bx.restore_imgs(imgs)
 	imgs = np.reshape(imgs, [-1, 128, 128, 3])

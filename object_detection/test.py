@@ -5,6 +5,8 @@ from input_data import yolo_input_pippeline
 from tensorflow.python.keras._impl.keras import backend as K
 from tensorflow.python.keras.utils import to_categorical
 import matplotlib.pyplot as plt
+import os
+import dataGen as dg
 
 '''
 a = np.zeros([2*3*3*2*5]) 
@@ -27,16 +29,17 @@ print(labels.shape)
 print(arr.dtype)
 '''
 
-a = [1,2,3]
+#print(os.listdir('data/test/code'))
 
-np.random.seed(12)
-np.random.shuffle(a)
-print(a)
+# міняє імена файлів і директорій на в data_dir на їх номер
+# (якшо такого імені не існує)
+def rename_data(data_dir):
+	file_names = os.listdir(data_dir)
+	for i in range(len(file_names)):
+		file_path = os.path.join(data_dir, file_names[i])
+		file_tokens = file_names[i].split('.')
+		new_name = os.path.join(data_dir, str(i)+'.'+file_tokens[-1])
+		os.rename(file_path, new_name)
 
-np.random.seed(12)
-np.random.shuffle(a)
-print(a)
-
-np.random.seed(12)
-np.random.shuffle(a)
-print(a)
+data_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\train'
+rename_data(data_dir)
