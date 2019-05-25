@@ -213,7 +213,7 @@ class DataSetGenerator:
 				images.append(img)
 				#plt.imshow(img); plt.show(); print(img)
 		for i in range(len(file_names)):
-			plt.imsave(join(save_dir, 'code.'+str(i)+'.jpeg'), images[i], format='jpeg')
+			plt.imsave(join(save_dir, str(i)+'.jpeg'), images[i], format='jpeg')
 
 
 	# resize img у всіх класах
@@ -230,6 +230,6 @@ class DataSetGenerator:
 
 
 if __name__ == '__main__':
-	data_dir = 'data/train'
+	data_dir = 'data/train_square2'
 	dsg = DataSetGenerator(data_dir)
-	dsg.resize_all_imgs(save_dir = False, size = (128,128))
+	dsg.resize_all_imgs(save_dir = (data_dir+'1'), size = (128,128))

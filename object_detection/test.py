@@ -32,14 +32,18 @@ print(arr.dtype)
 #print(os.listdir('data/test/code'))
 
 # міняє імена файлів і директорій на в data_dir на їх номер
+# можна зі зсувом offset - перший номер
 # (якшо такого імені не існує)
-def rename_data(data_dir):
+def rename_data(data_dir, offset):
 	file_names = os.listdir(data_dir)
 	for i in range(len(file_names)):
 		file_path = os.path.join(data_dir, file_names[i])
 		file_tokens = file_names[i].split('.')
-		new_name = os.path.join(data_dir, str(i)+'.'+file_tokens[-1])
+		new_name = os.path.join(data_dir, str(i+offset)+'.'+file_tokens[-1])
 		os.rename(file_path, new_name)
 
+
+data_dir2 = r"data/train_square21/imgs"
+data_dir1 = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\train_big1'
 data_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\train'
-rename_data(data_dir)
+rename_data(data_dir2, 71)
