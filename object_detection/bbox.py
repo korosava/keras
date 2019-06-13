@@ -5,6 +5,7 @@ from copy import deepcopy
 from tensorflow.python.keras._impl.keras import backend as K
 import os
 from os.path import join
+import tensorflow as tf
 
 
 #<==================================_BBOX_&_IMAGE_CREATING_==================================>
@@ -104,6 +105,7 @@ def normalize_bbox(bboxes, img_size, cell_size):
 # денормалізація bbox
 def restore_bbox(bboxes, offsets, img_size, cell_size):
 	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
+
 	bboxes[:,:,0:2] *= cell_size
 	bboxes[:,:,0:2] += cell_size*offsets #(x,y) відносно кожної клітинки
 	bboxes[:,:,2:4] *= img_size # (w,h) відносто розмірів зображення
@@ -113,6 +115,40 @@ def restore_bbox(bboxes, offsets, img_size, cell_size):
 	bboxes[:,:,1]-=bboxes[:,:,3]/2 # y-h/2
 	bboxes = np.int_(bboxes)
 	return bboxes
+
+
+
+
+'''
+# денормалізація bbox (по 1 через map)
+def restore_bbox_tensor(bboxes, offsets, img_size, cell_size):
+	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
+	res = [0 for i in range(bboxes.shape[0])]
+	
+	# ЗРОБИТИ ЧЕРЕЗ КОНКАТЕНАЦІЮ ТЕНЗОРІВ
+	res[2] = bboxes[2]*img_size
+	res[3] = bboxes[3]*img_size
+	
+	res[0] = bboxes[0]*cell_size + cell_size*offsets[0] - bboxes[2]/2
+	res[1] = bboxes[1]*cell_size + cell_size*offsets[1] - bboxes[3]/2
+
+	res = K.cast(res, 'int32')
+	return bboxes
+'''
+
+# денормалізація bbox (по 1 через map)
+def restore_bbox_tensor(bboxes, offsets, img_size, cell_size):
+	assert img_size%cell_size == 0, 'imgs МАЄ НАЦІЛО ДІЛИТИСЬ НА cell_size'
+
+	res_wh = bboxes[2:4]*img_size
+	res_x = bboxes[0]*cell_size + cell_size*offsets[0] - res_wh[0]/2
+	res_y = bboxes[1]*cell_size + cell_size*offsets[1] - res_wh[1]/2
+	full_res = tf.stack([res_x, res_y, res_wh[0], res_wh[1]])
+
+	return full_res
+
+
+
 
 
 #<==================================_DATASET_CREATING_==================================>
@@ -193,6 +229,7 @@ def loss_to_labels(
 	num_imgs = len(offsets)
 	cell_size = int(img_size/num_cells)
 	num_objects = len(offsets[0])
+
 	labels = np.reshape(labels, [-1,num_cells,num_cells,num_bboxes,5])
 	confidences = labels[:,:,:,:,4]
 	confidences = np.reshape(confidences, [-1, num_cells*num_cells*num_bboxes])
@@ -209,6 +246,62 @@ def loss_to_labels(
 		bboxes_batch[:,bbox,:] = restore_bbox(bboxes_batch[:, bbox, :], offsets, img_size, cell_size)
 	
 	return bboxes_batch, confidences
+
+
+
+
+# перетворення тензорів, повернення рохмірів bbox до сбсолютних ів відносних
+def loss_to_labels_tensor(
+	labels,
+	offsets,
+	num_cells,
+	num_bboxes,
+	img_size):
+	num_imgs = len(offsets)
+	cell_size = int(img_size/num_cells)
+	num_objects = len(offsets[0])
+
+	labels = K.reshape(labels, [-1, num_cells, num_cells, num_bboxes, 5])
+	confidences = labels[:,:,:,:,4]
+	confidences = K.reshape(confidences, [-1, num_cells*num_cells*num_bboxes])
+	labels = labels[:,:,:,:,0:4]
+
+	bboxes_batch = [] # [-1, bboxes]
+	for img in range(num_imgs):
+		for obj in range(num_objects):
+			for bbox in range(num_bboxes):
+				x_offset,y_offset = offsets[img,obj]
+				bboxes_batch.append(labels[img,x_offset,y_offset,bbox])
+
+	offsets = K.reshape(offsets, [-1, num_bboxes])
+	offsets = K.cast(offsets, 'float32')
+
+	for i,n in zip(range(int(len(bboxes_batch)/num_bboxes)), range(len(bboxes_batch))):
+		for j in range(num_bboxes):
+			bboxes_batch[n] = restore_bbox_tensor(bboxes_batch[i], offsets[i], img_size, cell_size) # однакові offsets для всіх bbox
+
+	# відновлені bbox
+	return K.cast(bboxes_batch, 'int32')
+
+# перетворення iou до формату помилки
+def iou_to_loss(iou, offsets, num_objects, num_bboxes, num_cells):
+	num_imgs = len(offsets)
+	iou = K.reshape(iou, [-1, 2])
+	#[imgs, cells, cells, bboxes, 1]
+	res = [[[[[0 for m in range(1)] 
+	 			 for l in range(num_bboxes)] 
+	 			 for k in range(num_cells)] 
+	 			 for j in range(num_cells)] 
+	 			 for i in range(num_imgs)] 
+
+	for img in range(num_imgs):
+		for obj in range(num_objects):
+			for bbox in range(num_bboxes):
+				x_offset,y_offset = offsets[img,obj]
+				res[img][x_offset][y_offset][bbox][0] = iou[img, bbox]
+	return res
+
+
 
 
 #<==================================_BBOXES_&_IMAGE_PLOTTING_==================================>
@@ -231,9 +324,23 @@ def build_bboxes(imgs, bboxes_batch):
 			for obj in range(bboxes_shape[2]):
 				x,y,w,h = bboxes_batch[i,bbox,obj,:]
 				plt.gca().add_patch(matplotlib.patches.Rectangle((x, y), w, h, ec='r', fc='none'))
-		print(bboxes_batch[i])
+		print('\n\n',bboxes_batch[i])
 		plt.show()
 
+def buid_labs_preds(imgs, labels, preds):
+	imgs_shape = imgs.shape
+	bboxes_shape = labels.shape
+	for i in range(imgs_shape[0]):
+		matplotlib.pyplot.figure()
+		plt.imshow(imgs[i], origin='lower')
+		for bbox in range(bboxes_shape[1]):
+			for obj in range(bboxes_shape[2]):
+				x,y,w,h = labels[i,bbox,obj,:]
+				plt.gca().add_patch(matplotlib.patches.Rectangle((x, y), w, h, ec='g', fc='none'))
+				x1,y1,w1,h1 = preds[i,bbox,obj,:]
+				plt.gca().add_patch(matplotlib.patches.Rectangle((x1, y1), w1, h1, ec='r', fc='none'))
+		print('\n\n\n',labels[i], '\n', preds[i])
+		plt.show()
 
 #<==================================_TESTING_==================================>
 if __name__ == '__main__':

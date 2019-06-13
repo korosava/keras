@@ -11,14 +11,27 @@ from tensorflow.python.keras.utils import to_categorical
 
 def yolo_loss(y_true, y_pred):
 	l_coord = 5
-	l_noobj = 0.5
+	l_size = 5
+	l_conf = 0.1	# 0.1   0.5
+	l_noobj = 0.01	# 0.01  0.1
 	
 	y_true = K.reshape(y_true, [-1,4,4,2,5])
 	y_pred = K.reshape(y_pred, [-1,4,4,2,5])
-	iou = iouFinder(y_true, y_pred)
 
-	iou = K.reshape(iou, [-1,4,4,2,1])
-	y_true = K.concatenate((y_true[:,:,:,:,0:4], iou), axis = 4)
+	chunk = yolo_loss.iter * yolo_loss.batch_size
+	offset = yolo_loss.offsets[chunk:chunk+yolo_loss.batch_size]
+	new_iou = new_iouFinder(y_true, y_pred, offset)
+
+	yolo_loss.iter += 1
+	if yolo_loss.iter*yolo_loss.batch_size >= len(yolo_loss.offsets):
+		yolo_loss.iter = 0
+	
+	new_iou = bbox.iou_to_loss(new_iou, offset, 1, 2, 4)
+
+	#new_iou = iouFinder(y_true,y_pred)
+	#new_iou = K.reshape(new_iou, [-1,4,4,2,1])
+
+	y_true = K.concatenate((y_true[:,:,:,:,0:4], new_iou), axis = 4)
 	kij = kijFinder(y_pred)
 	ki = kiFinder(y_true)
 	kij_not = K.cast(tf.logical_not(K.cast(kij, 'bool')), 'float32')
@@ -35,7 +48,7 @@ def yolo_loss(y_true, y_pred):
 									K.square(
 										y_pred[:,:,:,:,0:2]-y_true[:,:,:,:,0:2]), axis=4), axis=3), axis=2), axis=1), axis=0))
 	loss_size = (
-	l_coord *
+	l_size *
 		K.mean(
 			K.sum(
 				K.sum(
@@ -46,14 +59,15 @@ def yolo_loss(y_true, y_pred):
 									K.square(
 										K.sqrt(y_pred[:,:,:,:,2:4]) - K.sqrt(y_true[:,:,:,:,2:4])), axis=4), axis=3), axis=2), axis=1), axis=0))
 	loss_confidence_1 = (
-	K.mean(
-		K.sum(
+	l_conf *
+		K.mean(
 			K.sum(
 				K.sum(
-					ki *
-						kij *
-							K.square(
-								y_pred[:,:,:,:,4]-y_true[:,:,:,:,4]), axis=3), axis=2), axis=1), axis=0))
+					K.sum(
+						ki *
+							kij *
+								K.square(
+									y_pred[:,:,:,:,4]-y_true[:,:,:,:,4]), axis=3), axis=2), axis=1), axis=0))
 	loss_confidence_2 = (
 	l_noobj *
 		K.mean(
@@ -110,6 +124,28 @@ def iou(coords):
 	res = tf.cond(tf.logical_or(w_I<=0,h_I<=0), zero1, i_dev_u)
 	return res
 
+
+
+'''
+Обчислення IOU для одного з передбачених bbox та правдивого bbox:
+[x, y, w, h]1  =  [0.46875, 0.1875, 0.515625, 0.234375] (px)	
+[x, y, w, h]t = [0.5, 0.1875, 0.5234375, 0.265625] (px)
+w_i = min(0.46875+0.515625, 0.5+0.5234375) – max(0.46875, 0.5) = 0.99-0.5 = 0.49
+h_i = min(0.1875+0.234375, 0.1875+0.265625) – max(0.1875, 0.1875) = 0.4215 – 0.1875 = 0.234
+I = 0.49*0.234 = 0.114
+U = (0.5156*0.2343 + 0.5234*0.2656) – 0.114 = 0.1458 
+IOU = 0.114/0.1458 ~ 0.78
+
+треба переробити на нормальне, в PX
+'''
+def new_iouFinder(y_true, y_pred, offset):
+	# [img, bbox, obj, 4]
+	y_pred = bbox.loss_to_labels_tensor(y_pred, offset, num_cells=4, num_bboxes=2, img_size=128)
+	y_true = bbox.loss_to_labels_tensor(y_true, offset, num_cells=4, num_bboxes=2, img_size=128)
+	#[img*bbox, 4]
+	coords = K.concatenate((y_true, y_pred), axis=1)
+	res = K.map_fn(iou, coords, dtype='float32')
+	return res
 
 
 if __name__ == '__main__':

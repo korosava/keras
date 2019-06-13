@@ -5,6 +5,7 @@ from os.path import isfile, join
 import os
 import dataGen
 import matplotlib.pyplot as plt
+import matplotlib
 
 '''
 data inputs format:
@@ -102,8 +103,8 @@ if __name__ == '__main__':
 	save_dir = r'E:\programming\python\study\tutorials\keras\img_labeling\BBox-Label-Tool\Images\004'
 	dataGen.DataSetGenerator(data_dir).resize_imgs(save_dir=save_dir, size=(128,128))
 	'''
-	imgs,bboxes,offsets = yolo_input_pippeline2(num_cells=4, num_objects=1, num_bboxes=2, return_offsets=1, data_dir='data/train')
-	bboxes_batch, confidences = bx.loss_to_labels(bboxes, offsets, num_cells=4, num_bboxes=2, img_size=128)
+	imgs,bboxes,offsets = yolo_input_pippeline2(num_cells=4, num_objects=1, num_bboxes=2, return_offsets=1, data_dir='data/train_new')
+	bboxes, confidences = bx.loss_to_labels(bboxes, offsets, num_cells=4, num_bboxes=2, img_size=128)
 	imgs = bx.restore_imgs(imgs)
 	imgs = np.reshape(imgs, [-1, 128, 128, 3])
-	bx.build_bboxes(imgs, bboxes_batch)
+	#bx.build_bboxes(imgs, bboxes_batch)
